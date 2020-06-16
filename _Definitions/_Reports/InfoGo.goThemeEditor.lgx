@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Report ID="InfoGo.goThemeEditor" InfoGoVersion="12.7.348" SecurityReportRightID="InfoGoThemeManager">
+  <MasterReport Report="InfoGo.goMaster" />
+  <Note Note="When security is enabled, this report requires SecurityRightID &quot;InfoGoThemeManager&quot;." />
+  <Body Class="go-home">
+    <Division Class="go-headers" HtmlDiv="True" ID="divSubHeader">
+      <Rows ID="GoBoxTitle">
+        <Row>
+          <Column ID="GoIconPage">
+            <Image AltText="" Caption="InfoGo.iconThemeModifierSelected.png" Class="titleMenuIcon TitleIconPadding" Height="24px" ID="InfoGo.iconThemeModifierSelected.png" Tooltip="" Width="24px" />
+          </Column>
+          <Column ID="GoTitle">
+            <Label Caption="Theme Editor" Class="ThemeHeaderLarge" ID="lblTitle" />
+          </Column>
+        </Row>
+      </Rows>
+    </Division>
+    <Division Class="ThemeContent" HtmlDiv="True" ID="divGoContainer">
+      <ThemeEditor ID="ThemeEditor" Theme="@Function.GlobalTheme~" />
+    </Division>
+  </Body>
+  <IncludeSharedElement DefinitionFile="InfoGo.goShared" SharedElementID="sharedScripts" />
+  <ideTestParams />
+</Report>

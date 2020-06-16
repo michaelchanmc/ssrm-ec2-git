@@ -1,0 +1,561 @@
+*, *:before, *:after {
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+html, body, body>form {
+	height: 100%;
+	-ms-overflow-style: scrollbar;
+}
+
+strong, b {
+font-weight: bold;
+}
+
+body,
+.go-page {
+	font-size: 12px;
+	text-rendering: optimizeLegibility;
+}
+
+#divGoHeader{
+  height: 100%;
+}
+
+#rdMainBody .ThemeContent {
+	min-height: 100%;
+	height: auto !important;
+	height: 100%;
+}
+
+.ThemeContent,
+.ThemeContentCentered,
+.go-analysis .rdAgWrapper > tbody > tr > td {
+	padding: 0 1.2em;
+}
+
+.go-analysis .ThemeContent,
+.go-analysis .ThemeContentCentered {
+	padding: 0;
+}
+
+.ThemeContentCentered {
+	max-width: 100%;
+}
+
+.go-bold {
+	font-weight: bold;
+}
+
+/* To center content:
+.go-analysis .rdAgWrapper,*/
+.go-dashboard .go-content,
+.go-report .go-content {
+	margin: 2em auto 0;
+}
+.go-dashboard .ThemeContent,
+.go-report .ThemeContent {
+	min-width: 100%;
+}
+
+.go-title { /* custom title */
+	vertical-align: middle;
+	margin-left: 5px;
+}
+
+.go-title-text {
+	display: inline-block;
+}
+
+.go-title-menu-icon {
+	vertical-align: top;
+	margin-left: 10px;
+}
+
+.go-help-icon {
+	vertical-align: middle;
+	margin-left: 20px;
+}
+
+.go-hidden {
+	display: none;
+}
+
+.go-fixed-button {
+	position:fixed; top:70px; right:4%;
+}
+
+.go-box-container {
+	width: 50px;
+	border-radius: 0 0 4px 0;
+}
+
+.go-box {
+	position: absolute;
+	width: 48px;  /* 2em if text "GO" */
+	height: 48px; /* 2em if text "GO" */
+	font-size: 0px;
+	line-height: 2;
+}
+
+.go-box:hover {
+	opacity: .6;
+}
+
+.go-box:active {
+	position: relative;
+	top: 1px;
+}
+
+.go-box a {
+	text-shadow: 0 -1px #aaa;
+	text-decoration: none;
+}
+
+.go-box a:hover {
+	text-decoration: none;
+}
+
+.go-box-home {
+	white-space: nowrap;
+	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=15)";
+	filter: alpha(opacity=15);
+	opacity: 0.9;
+	text-align: left;
+    -webkit-transition: font-size 0s, width 1s, height 1s, background-color 1s, -webkit-transform 1s;
+	transition: font-size 0s, width 1s, height 1s, background-color 0s, transform 1s;
+	width: 50px;
+}
+/*
+.go-box:hover {
+    opacity: 1.0;
+    width: 66px;
+    background-color: #2C323C;
+    text-align: left;
+    border-radius: 0 5px 5px 0;
+    box-shadow: 0 1px 1px 0 rgba(0,0,0,0.2);
+    z-index: 1;
+    color: white;
+	-webkit-transform: scaleY(y);
+    transform: scaleY(y);
+	font-size: 100%;
+	white-space: nowrap;
+}
+*/
+
+table #dtList, table #dtUserList, table #dtBookmarkSharedWith {
+    border-spacing: 0px;
+}
+
+.go-list-item .rdThemeDataTableCell, #dtUserList .rdThemeDataTableCell, #dtBookmarkSharedWith .rdThemeDataTableCell {
+    border-bottom: 1px solid #DCDCDC;
+}
+
+
+.go-find-input-container .go-icon {
+	float: right;
+	margin: 0;
+	margin-top: -0.2em;
+	font-size: 2em;
+	line-height: 2;
+	width: 1.5em;
+	position: relative;
+	pointer: normal;
+}
+
+.go-find-input-container {
+	background-color: rgb(64, 64, 64) !important;
+	width: 100%;
+	position: relative;
+	overflow: visible;
+	margin-bottom: 0.25em;
+    padding: 5px;
+}
+
+.go-find-input-container:hover {
+    background-color: #2C323C !important;
+}
+	
+input.go-input {
+	margin-top: 0.35em;
+    padding-left: 40px;
+}
+
+.go-home .go-defaultbookmark ul,
+.go-home .go-defaultbookmark li {
+	list-style: none;
+}
+
+.ThemePanel {
+	display: block;
+	padding: 1em;
+	border-radius: 6px;
+}
+
+.go-create-list-col {
+	width: 33%;
+	min-width: 7.2em;
+	text-align: center;
+	margin: 0 auto;
+	display: inline-block;
+	margin-left: 1px;
+	vertical-align: top;
+}
+
+.go-create-list-item,
+.go-intro-item {
+	width: 100%;
+	vertical-align: middle;
+	padding: 0.5em 0;
+	margin: 0;
+	font-size: 1.2em;
+	position: relative;
+	display: inline-block;
+	background-size: auto 100px;
+}
+
+.go-create-list-item {
+	height: 6em;
+}
+
+.go-create-help-item {
+	height: 6em;
+	font-size: 1em;
+	padding: 1em;
+}
+
+.go-intro {
+	width: 100%;
+	margin-bottom: 15px;
+}
+
+.go-intro-list {
+	padding: 0 1em;
+	font-size: 1em;
+}
+
+.go-intro-item li {
+	margin: 0.5em;
+}
+
+.go-intro-item p {
+	margin: 1.5em 0.5em;
+}
+
+.go-create-list-item:active {
+	position: relative;
+	top: 1px;
+}
+
+input.go-input {
+	background: transparent;
+	border: none;
+	outline: none;
+	-webkit-appearance: none;
+	-webkit-border-radius: 0;
+	border-radius: 0;
+    color:#fff;
+	box-shadow: none;
+    width: 100%;
+}
+
+.go-home input.go-input {
+	width: 100%;
+	margin: 0;
+	padding: 0 5px 0 40px;
+	font-size: 1.5em;
+	background-color: transparent;
+    background-position: 1em 50%;
+}
+
+.go-find-input-container {
+	background-image: url('../_SupportFiles/InfoGo.iconFind.png');
+	background-repeat: no-repeat;
+	background-position: 1em 50%;
+	background-size: 24px;
+	filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src='../_SupportFiles/InfoGo.iconFind.png',sizingMethod='scale');
+	-ms-filter: "progid:DXImageTransform.Microsoft.AlphaImageLoader(src='../_SupportFiles/InfoGo.iconFind.png',sizingMethod='scale')";
+    text-align: left;
+	border-radius: 6px;
+}
+
+.go-list {
+	width: 100%;
+}
+
+.go-th-header {
+	display: table;
+	padding-left: 6px;
+	text-align: left;
+}
+
+.go-list-item-icon-schedule,
+.go-list-item-icon-delete,
+.go-list-item-icon-share {
+	margin-top: 0px;
+	margin-left: 0px;
+}
+
+.go-list-item-title {
+	padding: 0.25em 0;
+}
+
+.go-home{
+	align: center;
+}
+
+/* Adjustments for small devices*/
+
+@media (max-width: 30em) {  /* small mobile */
+	.go-list,
+	.go-intro-list {
+		font-size: 0.75em;
+	}
+}
+
+@media (max-width: 40em) {  /* mobile */
+
+	.go-create-list-col {
+		display: block;
+		width: 100%;
+	}
+	.go-create-list-item {
+		display: inline-block;
+		width: 66.66666%;
+		height: 100%;
+		border-right: 1px solid #555;
+	}
+	.go-create-help-item {
+		display: inline-block;
+		width: 33.33333%;
+		height: 100%;
+		vertical-align: bottom;
+	}
+	.go-create-analysis {
+		border-bottom: 8px solid #85b74d;
+		border-radius: 2px 0 0 0;
+	}
+	.go-create-dashboard {
+		border-bottom: 8px solid #b84026;
+	}
+	.go-create-report {
+		border-bottom: 8px solid #2e5b74;
+		border-radius: 0 0 0 2px;
+	}
+	.go-create-analysis-help {
+		border-bottom: 8px solid #85b74d;
+		border-radius: 0 2px 0 0;
+	}
+	.go-create-dashboard-help {
+		border-bottom: 8px solid #b84026;
+	}
+	.go-create-report-help {
+		border-bottom: 8px solid #2e5b74;
+		border-radius: 0 0 2px 0;
+	}
+}
+
+@media (min-width: 40em) {  /* desktop */
+	.go-create-list {
+		min-width: 38em;
+	}
+}
+
+.draghandle {
+	cursor: move;
+}
+
+#divHeaderContent {
+vertical-align: middle;
+}
+
+#UserLogout {
+    position: absolute;
+    top: .0em;
+    right: 2em;
+}
+
+span#rdDmtCaption {
+    padding-left: 5px;
+}
+
+#HamburgerMenuImage{
+    display: block;
+    height: 50px;
+    margin-left: -3px;
+    position: relative;
+    min-width: 19px !important;
+    border-radius: 0 5px 5px 0;
+    padding-left: 6px;
+    padding-top: 18px;
+}
+#LogoArea{
+	padding: 0 25px 0 0;
+}
+#logoBgColor{
+	background-color: #ffffff;
+    display: table-cell;
+    height: 52px;
+    left: -16px;
+    position: absolute;
+    top: -10px;
+    width: 49px;
+    z-index: 1;
+	opacity: 0.1;
+}
+#imgLogo{
+	z-index: 10;
+	position: relative;
+	padding: 2px 0 0;
+	margin-left: -5px;
+}
+#rdMenuTable{
+	min-width: 190px !important;
+	white-space: nowrap;
+	max-width: 600px !important;
+}
+
+#divGoContainer {
+    padding-top: 15px;
+}
+
+.QueryBuilderHeader {
+    height: 52px;    
+}
+.ImgClose{
+    padding-left: 7px;
+    padding-top: 7px;
+}
+.BtnClose {
+    border: medium none;
+    border-radius: 50%;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    float: right;
+    height: 24px !important;
+    margin-right: 15px;
+    margin-top: 15px;
+    overflow: hidden;
+    width: 24px;
+}
+.BtnClose:hover{
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=70)"; 
+    filter: alpha(opacity=70); 
+    -moz-opacity: 0.7;         
+    -khtml-opacity: 0.7;       
+    opacity: 0.7;
+}
+.BtnQueryBuilder{
+    padding-left: 8px;
+    padding-top: 14px;
+}
+
+#thinkspaceContainer {
+    background-color: rgba(224, 224, 224, 0.28);
+    vertical-align: top;
+}
+
+#GoTitle img {
+    vertical-align: middle;
+}
+
+.TitleIconPadding{
+    margin-right: 5px;
+}
+
+#divSelectData {
+    padding: 20%;
+    white-space: nowrap;
+}
+
+/*LaunchMenu*/
+
+	#LaunchBar {
+		height: 550px;
+	}
+
+	.go-button-list {
+		position: relative;
+		top: 6px;
+    	left: 5px;
+	}
+	
+	.go-button {
+		width: 40px;
+    	height: 40px;
+		margin: 0 0 6px 0;
+		padding: 3px;
+		text-align: left;
+		display: block;
+		border-radius: 10em;
+		text-decoration: none;
+		box-shadow: 0 1px 2px 0px rgba(0, 0, 0, 0.2);
+		overflow: hidden;
+		transition: all 0.3s ease;
+		cursor: pointer;
+		white-space: nowrap;
+		color: #ffffff;
+	}
+	
+	.go-button:hover {
+		color: #ffffff;
+		position: relative;
+        z-index: 9100;
+	}
+	
+	#btn-goAnalysis.go-button:hover,
+	#btn-goHome.go-button:hover {
+ 		width: 9em;
+	}
+	#btn-goData.go-button:hover,
+	#btn-goDefaultBookmark.go-button:hover {
+ 		width: 11em;
+	}
+	#btn-goReport.go-button:hover,
+	#btn-goTheme.go-button:hover,
+	#btn-goDiscovery.go-button:hover {
+		width: 12em;
+	}
+	#btn-goScheduler.go-button:hover {
+		width: 13em;
+	}
+	#btn-goDashboard.go-button:hover {
+		width: 14em;
+	}
+		
+	div.button-list>div.button>i.fa {
+		color: #616161;
+		transition: all 0.3s ease;
+		font-size: 20px;
+	}
+	
+	div.button-list>div.button:hover>i.fa {
+		color: #0288d1;
+	}
+	
+	.go-button-label {
+		margin: 0 0 0 3px;
+		position: relative;
+		display: inline;
+		white-space: nowrap;
+		width: 10em;
+		top: -10px;
+	}
+	
+	.sideBarHome {
+		background-image: url(gradient.png);
+		background-repeat: repeat-y;
+		background-position: right;
+		opacity: .7;
+		border-radius: 6px;
+		align-content: center;
+		vertical-align: top;
+		padding-top: 10px;
+	}
+	
+	.titleMenuIcon{
+		margin-left:10px;
+	}

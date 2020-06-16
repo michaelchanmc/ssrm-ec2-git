@@ -1,0 +1,9 @@
+<Division ID="menuTreeSide" ShowModes="None">
+  <Rows ID="rdMenuTable" CellSpacing="0" />
+  <InputHidden ID="rdDisableRememberExpansion_menuTreeSide" DefaultValue="False" />
+  <Division ShowModes="None">
+    <Image ID="rdBranchCollapsedImage_menuTreeSide" Caption="rdTemplate/rdArrowRight.png" />
+    <Image ID="rdBranchExpandedImage_menuTreeSide" Caption="rdTemplate/rdArrowDown.png" />
+  </Division>
+  <IncludeHtml Html="&lt;SCRIPT rdAjaxRunOnLoad=&quot;True&quot;&gt;rdDataMenuTreeInit('menuTreeSide')&lt;/SCRIPT&gt;" />
+</Division>

@@ -1,0 +1,3 @@
+<Procedure ID="sessionOriginalDefaultReport" Type="SetSessionVars">
+  <SessionParams defaultReport="" />
+</Procedure>

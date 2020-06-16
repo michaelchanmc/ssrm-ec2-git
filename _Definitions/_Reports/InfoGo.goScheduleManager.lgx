@@ -1,0 +1,203 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Report ID="InfoGo.goScheduleManager" InfoGoVersion="12.7.348" SecurityReportRightID="InfoGoScheduleManager">
+  <Note Note="When security is enabled, this report requires SecurityRightID &quot;InfoGoScheduleManager&quot;." />
+  <MasterReport Report="InfoGo.goMaster" />
+  <DefinitionModifierFile DefinitionModifierFile="goCustomizations.dmfScheduleManager.xml" ID="CustomDefinitionModifierFile" />
+  <SetSessionVariables ID="SetScheduleConnID">
+    <SessionParams rdRcScheduleConnID="goScheduler" />
+  </SetSessionVariables>
+  <LocalData ID="localGetScheduleCnt">
+    <DataLayer ConnectionID="goScheduler" ID="dlScheduler" IncludeTaskResultErrorMessage="True" Type="Scheduler">
+      <AggregateColumn AggregateColumn="rdBookmarkID" AggregateFunction="Count" ID="cntSchedules">
+        <Note Note="Use the count to show Help when there are no scheduled." />
+      </AggregateColumn>
+    </DataLayer>
+  </LocalData>
+  <Body Class="go-home">
+    <Division Class="go-headers" HtmlDiv="True" ID="divSubHeader">
+      <Rows ID="GoBoxTitle">
+        <Row>
+          <Column ID="GoIconPage">
+            <Image AltText="" Caption="InfoGo.iconScheduleManagerSelected.png" Class="titleMenuIcon" Height="24px" ID="InfoGo.iconScheduleManagerSelected.png" Tooltip="" Width="24px" />
+          </Column>
+          <Column ID="GoTitle">
+            <Label Caption="Schedule Manager" Class="ThemeHeaderLarge go-title" ID="lblTitle" />
+            <Image Caption="InfoGo.iconHelp.png" Class="go-help-icon" Height="24px" ID="InfoGo.iconHelp.png" Width="24px">
+              <Action ElementID="divGoIntroContainer" ID="actShowHelp" ShowElementEffect="FadeIn" Type="ShowElement" />
+            </Image>
+          </Column>
+        </Row>
+      </Rows>
+    </Division>
+    <Division Class="ThemeContent ThemeContentCentered" HtmlDiv="True" ID="divGoContainer">
+      <Division Class="go-content" HtmlDiv="True" ID="divMainContent">
+        <Division Class="ThemePanel go-intro" HtmlDiv="True" ID="divGoIntroContainer" ShowModes="None">
+          <Division Class="go-intro-list" HtmlDiv="True" ID="divGoIntro">
+            <Label Caption="&lt;p&gt;&lt;strong&gt;Schedule Manager&lt;/strong&gt; lists all scheduled reports, allowing schedules to be reviewed, changed and deleted.&lt;/p&gt;&#xD;&#xA;&#xD;&#xA;&lt;p&gt;Reports which had problems get highlighted in the Status column.  Click the status to view the error log.&lt;/p&gt;&#xD;&#xA;" Class="go-intro-item" Format="HTML" ID="lblIntro" />
+          </Division>
+        </Division>
+        <Division Class="ThemePanel go-find" Condition="0@Local.cntSchedules~ &gt; 0" HtmlDiv="True" ID="divGoFindContainer">
+          <Division Class="rdAgUnselectedTab go-find-input-container" HtmlDiv="True" ID="divGoFindInputContainer">
+            <InputText Class="go-input go-home-input&quot; placeholder=&quot;Type to search..." DefaultValue="@Request.goFind~" ID="goFind">
+              <EventHandler DhtmlEvent="onkeyup">
+                <Action ElementID="dtList" ID="actFind" Type="RefreshElement" />
+              </EventHandler>
+            </InputText>
+          </Division>
+          <Division Class="go-find-list-container" HtmlDiv="True" ID="divGoFindListContainer">
+            <DataTable AjaxPaging="True" Class="go-list" ColumnHeaderClass="ThemeAlignLeft" HideWhenZeroRows="True" ID="dtList" RowClass="go-list-item">
+              <InteractivePaging CaptionType="Image" HideShowPrevNextCaptions="True" HideWhenOnePage="True" Location="Bottom" PageRowCount="50" ShowPageNumber="Numbered" />
+              <DataLayer ConnectionID="goScheduler" ID="dlScheduler" IncludeTaskResultErrorMessage="True" Type="Scheduler">
+                <CalculatedColumn Formula="'@Data.rdBookmarkCollection~'.replace('goCollection','')" ID="BookmarkOwner" />
+                <CalculatedColumn Formula="IIF('@Data.CustomColumn1~'=='', '@Data.rdReportID~', '@Data.CustomColumn1~')" ID="Title" />
+                <CompareFilter CaseSensitive="False" CompareType="Contains" CompareValue="@Request.goFind~" DataColumn="Title" DataType="Text" ID="compareIsFind" IncludeCondition="&quot;@Request.goFind~&quot;.length &gt; 0" />
+                <SortFilter DataType="Date" SortColumn="TimeNextRun" SortSequence="Descending" />
+                <FileColumn DataColumn="ErrorMsg" DataType="Text" Filename="@Function.AppDownloadPath~/@Function.GUID~.html" ID="ErrorFile" SavedFilenameColumnID="ErrorFilename" />
+              </DataLayer>
+              <DataTableColumn Header=" " ID="colIcon">
+                <DataColumnSort DataColumn="SaveTime" DataType="Date" />
+                <Division Condition="&quot;@Data.rdReportID~&quot;.indexOf(&quot;InfoGo.&quot;)==0">
+                  <Image Caption="=IIF(&quot;@Data.rdReportID~&quot; = &quot;InfoGo.goReport&quot;, &quot;_SupportFiles/InfoGo.iconReport-48.png&quot;, &quot;_SupportFiles/InfoGo.iconAnalysis-48.png&quot;)" Height="24px" ID="InfoGo.iconContent-48.png" Width="24px" />
+                </Division>
+              </DataTableColumn>
+              <DataTableColumn Header="Title" ID="colTitle">
+                <DataColumnSort DataColumn="Title" />
+                <Division Class="go-list-item-title" HtmlDiv="True" ID="divGoListItemTitle">
+                  <Label Caption="@Data.Title~" />
+                </Division>
+              </DataTableColumn>
+              <DataTableColumn Header="Owner" ID="colOwner">
+                <DataColumnSort DataColumn="BookmarkOwner" />
+                <Division Class="go-list-item-title" HtmlDiv="True" ID="divGoListItemTitle">
+                  <Label Caption="@Data.BookmarkOwner~" />
+                </Division>
+              </DataTableColumn>
+              <DataTableColumn Header="Last Run" ID="colLastRun">
+                <DataColumnSort DataColumn="TimeLastRun" DataType="Date" />
+                <Label Caption="@Data.TimeLastRun~" Format="Short Date" />
+                <Spaces />
+                <Label Caption="@Data.TimeLastRun~" Format="Short Time" />
+              </DataTableColumn>
+              <DataTableColumn Header="Status" ID="colSuccessful">
+                <DataColumnSort DataColumn="WasSuccessfulLastRun" DataType="Text" />
+                <Division Condition="&quot;@Data.WasSuccessfulLastRun~&quot; = &quot;True&quot;" ID="divSuccess">
+                  <Image Caption="InfoGo.iconScheduleRunning.png" ID="imgSuccess" />
+                </Division>
+                <Division Condition="&quot;@Data.WasSuccessfulLastRun~&quot; == &quot;False&quot; &amp;&amp; &quot;@Data.TimeLastRun~&quot; != &quot;&quot;" ID="divFail">
+                  <Image Caption="InfoGo.iconScheduleFail.png" ID="imgFail" />
+                  <Division Condition="&quot;@Data.ErrorFilename~&quot; != &quot;&quot;" ID="divShowError">
+                    <Image Caption="InfoGo.iconShowScheduleError.png" ID="imgShowError">
+                      <Action ID="actionShowError" Type="Link">
+                        <Target Link="rdDownload/@Data.ErrorFilename~" Type="Link" />
+                      </Action>
+                    </Image>
+                  </Division>
+                </Division>
+                <Division Condition="&quot;@Data.IsRunning~&quot; == &quot;True&quot;" ID="divRunning">
+                  <Image Caption="InfoGo.iconScheduleRunning.png" ID="imgRunning" />
+                </Division>
+              </DataTableColumn>
+              <DataTableColumn Header="Next Run" ID="colNextRun">
+                <DataColumnSort DataColumn="TimeNextRun" DataType="Date" />
+                <Division Condition="'@Data.isDisabled~' != 'True'" ID="divNotDisabled">
+                  <Label Caption="@Data.TimeNextRun~" Format="Short Date" />
+                  <Spaces />
+                  <Label Caption="@Data.TimeNextRun~" Format="Short Time" />
+                </Division>
+                <Division Condition="'@Data.isDisabled~' == 'True'" ID="divDisabled">
+                  <Label Caption="disabled" Format="Short Date" ID="lblDisabled" />
+                </Division>
+              </DataTableColumn>
+              <DataTableColumn ID="colSchedule" Width="24" WidthScale="px">
+                <Division>
+                  <Image Caption="InfoGo.scheduleActive.png" Class="go-list-item-icon go-list-item-icon-schedule" Height="24px" ID="imgSchedule" Tooltip="@Data.ScheduleDescription~" Width="24px">
+                    <Action ElementID="popupSchedule" ID="showSchedule" Type="ShowElement" />
+                  </Image>
+                  <PopupPanel Caption="Schedule" Draggable="True" ID="popupSchedule" PopupModal="True" PopupPanelLocation="Center" rdNoElementShowHistory="True">
+                    <IncludeFrame FrameBorder="False" ID="frameSchedule" Scrolling="False">
+                      <Target Report="InfoGo.goSchedule" Type="IncludeFrameReport" />
+                      <LinkParams rdAllowedExportFormats="" rdBookmarkCollection="@Data.rdBookmarkCollection~" rdBookmarkID="@Data.rdBookmarkID~" rdBookmarkUserName="@Data.BookmarkOwner~" rdCustomColumn1="@Data.CustomColumn1~" rdExportTableID="@Data.ReportCenterExportTableID~" rdPopupID="popupSchedule_Row@Function.RowNumber~" rdRcCommand="Schedule" rdRcReportID="InfoGo.goScheduleManager" rdReportCenterID="divMainContent" rdSchedulerReportID="@Data.rdReportID~" rdSchedulerTaskID="@Data.TaskID~" />
+                    </IncludeFrame>
+                  </PopupPanel>
+                </Division>
+              </DataTableColumn>
+              <DataTableColumn ID="colRemoveSchedule">
+                <Image Caption="InfoGo.deleteOn.png" ID="imgRemove">
+                  <Action ConfirmMessage="Remove? Are you sure?" ID="rdActionRemove" Javascript="rdAjaxRequestWithFormVars(&quot;rdAjaxCommand=rdAjaxNotify&amp;rdNotifyCommand=RcRemoveSchedule&amp;rdSchedulerTaskID=@Data.TaskID~&amp;rdBookmarkCollection=@Data.rdBookmarkCollection~&amp;rdBookmarkID=@Data.rdBookmarkID~&amp;rdBookmarkUserName=@Data.BookmarkOwner~&quot;); rdAjaxRequest(&quot;rdAjaxCommand=RefreshElement&amp;rdReport=InfoGo.goScheduleManager&amp;rdRefreshElementID=divMainContent&quot;)" Type="Javascript" />
+                </Image>
+              </DataTableColumn>
+              <DataTableColumn ID="colMessageDetails">
+                <Image Caption="InfoGo.iconShowEmailDetails.png" ID="imgShowEmailDetails" Tooltip="Show Message Details">
+                  <Action Display="Toggle" ElementID="mirMessageDetails" ID="actShowMessageDetails" Type="ShowElement" />
+                </Image>
+              </DataTableColumn>
+              <MoreInfoRow Class="ThemeContainerShadedAndBordered" ID="mirMessageDetails" ShowModes="None">
+                <Rows>
+                  <Row>
+                    <Column>
+                      <Label Caption="From:" ID="lblFrom" />
+                    </Column>
+                    <Column>
+                      <Label Caption="@Data.rdFrom~" />
+                    </Column>
+                  </Row>
+                  <Row>
+                    <Column>
+                      <Label Caption="To:" ID="lblTo" />
+                    </Column>
+                    <Column>
+                      <Label Caption="@Data.rdTo~" />
+                    </Column>
+                  </Row>
+                  <Row Condition="&quot;@Data.rdCc~&quot; != &quot;&quot;">
+                    <Column>
+                      <Label Caption="Cc:" ID="lblCc" />
+                    </Column>
+                    <Column>
+                      <Label Caption="@Data.rdCc~" />
+                    </Column>
+                  </Row>
+                  <Row Condition="&quot;@Data.rdBcc~&quot; != &quot;&quot;">
+                    <Column>
+                      <Label Caption="Bcc:" ID="lblBcc" />
+                    </Column>
+                    <Column>
+                      <Label Caption="@Data.rdBcc~" />
+                    </Column>
+                  </Row>
+                  <Row>
+                    <Column>
+                      <Label Caption="Subject:" ID="lblSubject" />
+                    </Column>
+                    <Column>
+                      <Label Caption="@Data.rdSubject~" />
+                    </Column>
+                  </Row>
+                  <Row>
+                    <Column>
+                      <Label Caption="Message:" ID="lblMessage" />
+                    </Column>
+                    <Column>
+                      <Label Caption="@Data.rdBody~" />
+                    </Column>
+                  </Row>
+                  <Row>
+                    <Column>
+                      <Label Caption="Report Format: " ID="lblFormat" />
+                    </Column>
+                    <Column>
+                      <Label Caption="@Data.rdFormat~" />
+                    </Column>
+                  </Row>
+                </Rows>
+              </MoreInfoRow>
+            </DataTable>
+          </Division>
+        </Division>
+      </Division>
+    </Division>
+    <IncludeScript ID="scriptShowIntro" IncludedScript="if (0@Local.cntSchedules~ == 0) {&#xD;&#xA;	document.getElementById('divGoIntroContainer').style.display = ''&#xD;&#xA;}" />
+  </Body>
+  <IncludeSharedElement DefinitionFile="InfoGo.goShared" SharedElementID="sharedScripts" />
+  <ideTestParams goFind="" />
+</Report>

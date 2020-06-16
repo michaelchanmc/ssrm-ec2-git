@@ -1,0 +1,31 @@
+<rdBookmarks InfoVersion="12.7.154-SP3">
+  <Bookmark Report="InfoGo.goAnalysisGrid" Name="" CustomColumn1="" CustomColumn2="" Description="Untitled Analysis" SaveTime="2020-05-29T15:15:13-04:00" BookmarkID="8d601bd6-6e6d-47d0-9078-77dfef6fe812" ExtraFile="DavoliogoCollection_8d601bd6-6e6d-47d0-9078-77dfef6fe812.xml">
+    <RequestParameters rdAgLoadSaved="DavoliogoCollection_8d601bd6-6e6d-47d0-9078-77dfef6fe812.xml" />
+    <SessionParameters />
+  </Bookmark>
+  <Bookmark Report="InfoGo.goAnalysisGrid" Name="" CustomColumn1="" CustomColumn2="" Description="Untitled Analysis" SaveTime="2020-05-29T15:15:16-04:00" BookmarkID="0093a957-b407-411b-9d35-709f4f2de402" ExtraFile="DavoliogoCollection_0093a957-b407-411b-9d35-709f4f2de402.xml">
+    <RequestParameters rdAgLoadSaved="DavoliogoCollection_0093a957-b407-411b-9d35-709f4f2de402.xml" />
+    <SessionParameters />
+  </Bookmark>
+  <Folders>
+    <Folder ID="globalMenu" Name="Global Menu" IsGlobalMenuFolder="True" />
+  </Folders>
+  <Bookmark Report="InfoGo.goAnalysisGrid" Name="" CustomColumn1="" CustomColumn2="" Description="Untitled Analysis" SaveTime="2020-05-29T15:31:01-04:00" BookmarkID="a59d6bbf-e215-4acd-b077-20125030f238" ExtraFile="DavoliogoCollection_a59d6bbf-e215-4acd-b077-20125030f238.xml">
+    <RequestParameters rdAgLoadSaved="DavoliogoCollection_a59d6bbf-e215-4acd-b077-20125030f238.xml" />
+    <SessionParameters />
+  </Bookmark>
+  <Bookmark Report="InfoGo.goReport" Name="" CustomColumn1="" CustomColumn2="" Description="Untitled Report" BookmarkID="adb4cd75-b93a-493e-97a2-969a8a27e3f7" ExtraFile="DavoliogoCollection_adb4cd75-b93a-493e-97a2-969a8a27e3f7.xml" SaveTime="2020-06-04T20:15:02+00:00">
+    <RequestParameters />
+    <SessionParameters />
+    <Schedule SchedulerTaskID="11" Description="At 8:00 AM on 2020-06-30" />
+  </Bookmark>
+  <Bookmark Report="InfoGo.goAnalysisGrid" Name="" CustomColumn1="" CustomColumn2="" Description="Untitled Analysis" SaveTime="2020-06-03T14:30:42+00:00" BookmarkID="97f49013-2b6b-4005-bba3-7ddd5dd96581" ExtraFile="DavoliogoCollection_97f49013-2b6b-4005-bba3-7ddd5dd96581.xml">
+    <RequestParameters rdAgLoadSaved="DavoliogoCollection_97f49013-2b6b-4005-bba3-7ddd5dd96581.xml" />
+    <SessionParameters />
+  </Bookmark>
+  <Bookmark Report="InfoGo.goReport" Name="" CustomColumn1="" CustomColumn2="" BookmarkID="4b9280d5-fb3a-463e-953e-35d6635df2b7" ExtraFile="DavoliogoCollection_4b9280d5-fb3a-463e-953e-35d6635df2b7.xml" Description="Here's a title" SaveTime="2020-06-04T21:13:56+00:00">
+    <RequestParameters />
+    <SessionParameters />
+    <Schedule SchedulerTaskID="12" Description="At 8:00 AM on 2020-06-28" />
+  </Bookmark>
+</rdBookmarks>

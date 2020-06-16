@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Process ID="InfoGo.goInitApplication" InfoGoVersion="12.7.348">
+  <Task ID="tskInitApplication">
+    <Procedure ID="procGetInfoGoVersionNumber" Type="RunDataLayerRows">
+      <DataLayer ID="dlGetVersion" Type="XMLFile" XMLFile="@Function.AppPhysicalPath~/_Definitions/_Reports/InfoGo.goHome.lgx" XPath="Report" />
+      <Procedure ID="setInfoGoVersionNumber" Type="SetSessionVars">
+        <SessionParams goPredictGoVersion="@Data.InfoGoVersion~" />
+      </Procedure>
+    </Procedure>
+  </Task>
+  <ideTestParams rdTaskID="" />
+</Process>

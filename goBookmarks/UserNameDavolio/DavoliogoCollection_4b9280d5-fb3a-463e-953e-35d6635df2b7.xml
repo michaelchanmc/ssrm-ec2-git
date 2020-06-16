@@ -1,0 +1,10 @@
+<Report InfoVersion="12.7.154-SP3">
+  <Body>
+    <Division HtmlDiv="True" rdReportAuthorElementType="Label" Class="rd-report-author-element" ID="a80f2f0a-4178-9442-660a-a8b30d38988c">
+      <Label ID="label_a80f2f0a-4178-9442-660a-a8b30d38988c" Format="Preserve Line Feeds" Caption="Email">
+      </Label>
+      <HtmlStyle border-width="1px" text-align="left" border-style="none" />
+    </Division>
+  </Body>
+  <StyleSheet StyleSheet="rdTemplate/rdReportAuthor/reportAuthor.css" />
+</Report>

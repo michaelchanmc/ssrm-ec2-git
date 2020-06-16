@@ -1,0 +1,41 @@
+html, body, body>form {
+	height: auto;
+	min-height: auto;
+}
+body {
+	background-color: #fff;
+	border: none;
+
+	color: #363B42;
+	font-family: 'Open Sans','Segoe UI','Lucida Grande','Helvetica Neue',Helvetica,'Arial','sans-serif';
+	font-size: 12px;
+	min-height: 100%;
+	text-decoration: none;
+	text-rendering: optimizelegibility;
+	text-transform: none;
+}
+
+#rdMainBody .ThemeContent,
+form > .ThemeContent {
+	margin: 0;
+	padding: 0;
+	border: none;
+	-webkit-box-shadow: none;
+	   -moz-box-shadow: none;
+			box-shadow: none;
+}
+
+.go-title,
+.go-box-container,
+.go-header,
+.go-footer,
+#rowsEditMode,
+#rdDebug {
+	display: none;
+}
+
+#rdReportAuthor {
+	-webkit-box-shadow: none;
+	   -moz-box-shadow: none;
+			box-shadow: none;
+}

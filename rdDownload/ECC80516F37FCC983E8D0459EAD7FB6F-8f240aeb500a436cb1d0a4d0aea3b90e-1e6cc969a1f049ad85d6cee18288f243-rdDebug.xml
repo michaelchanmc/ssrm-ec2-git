@@ -1,0 +1,14 @@
+<Procedure Expression="'' &lt;&gt; 'True' &amp;&amp; '' &lt;&gt; 'True' &amp;&amp; '' &lt;&gt; 'rdTemplate/rdDiagnostic'" ID="IfNotStudioScope" Type="If">
+  <Procedure ID="sessionGoDefaultBookmarkID" Type="SetSessionVars">
+    <SessionParams goDefaultBookmarkID="@Constant.goDefaultBookmarkID~" />
+  </Procedure>
+  <Procedure ID="sessionOriginalDefaultReport" Type="SetSessionVars">
+    <SessionParams defaultReport="" />
+  </Procedure>
+  <Procedure ID="PlgGetDefaultReportFromSettings" JavaPluginVersion="DotNet" PluginMethod="getDefaultReportFromSettings" PluginName="InfoGoReportManagementPlugin" PluginTypeName="InfoGoReportManagementPlugin.InfoGoReportManagementPlugin" Type="PluginCall" />
+  <Procedure Expression="'@Constant.goDefaultBookmarkID~' == ''  &amp;&amp; '@Constant.goDefaultBookmarkCollection~' == '' &amp;&amp; '@Constant.goDefaultBookmarkUserName~' == '' &amp;&amp; '@Constant.goDefaultBookmarkReportName~' == ''" ID="IfEmptyConstant" Type="If" />
+  <Procedure ID="plgInjectGlobalMenu" JavaPluginVersion="DotNet" PluginMethod="InjectGlobalMenu" PluginName="InfoGoReportManagementPlugin" PluginTypeName="InfoGoReportManagementPlugin.InfoGoReportManagementPlugin" Type="PluginCall">
+    <PluginParams bookmarkCollection="@Session.goBookmarkCollection~" globalMenuCaption="@Constant.goGlobalMenuCaption~" userName="@Function.UserName~" />
+  </Procedure>
+  <Procedure Expression="'@Session.bookmarkCollectionFound~' == 'False' || '@Session.goDefaultBookmarkShared~' == 'False' || '@Session.goDefaultBookmarkFound~' == 'False'" ID="ifBookmarkCollectionNotFound" Type="If" />
+</Procedure>

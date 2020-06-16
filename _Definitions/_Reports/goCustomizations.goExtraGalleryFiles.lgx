@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Report
+	ID="goCustomizations.goExtraGalleryFiles"
+	>
+	<SharedElement
+		ID="sharedExtraGalleryFiles"
+		>
+		<Note
+			Note="Add customized ExtraGalleryFile elements to include globally shared custom gallery items."
+		/>
+		<Remark>
+			<ExtraGalleryFile
+				DisableGalleryUpdates="True"
+			/>
+		</Remark>
+	</SharedElement>
+</Report>

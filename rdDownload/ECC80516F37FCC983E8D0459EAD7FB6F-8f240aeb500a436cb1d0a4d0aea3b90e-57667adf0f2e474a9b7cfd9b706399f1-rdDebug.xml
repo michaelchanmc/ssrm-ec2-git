@@ -1,0 +1,3 @@
+<Procedure ID="logger-SimpleLogging" JavaPluginVersion="Version10" PluginMethod="logEvent" PluginName="com.logianalytics.plugins.SimpleLogging" Type="PluginCall">
+  <PluginParams AppName="/ssrm/rdPage.aspx" EventDuration="" EventName="SessionStart" EventTime="2020-06-12 15:57:35" EventTimePrecise="2020-06-12T15:57:35.821Z" ReportID="" RowCount="" SQL="" UserName="Davolio" />
+</Procedure>

@@ -1,0 +1,74 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Report
+	ID="goCustomizations.goBookmarkSharingUserlist"
+	>
+	<SharedElement
+		ID="sharedDataLayer"
+		>
+		<SharingList
+			GroupIdentifierColumn="isgroup"
+			SharingCollectionColumn="last_name"
+			>
+			<Remark>
+				<DataLayer
+					ID="dlBookmarkSharingUserlist"
+					Type="Static"
+					>
+					<StaticDataRow
+						Department="Executive"
+						Username="George"
+					/>
+					<StaticDataRow
+						Department="Executive"
+						Username="Thomas"
+					/>
+					<StaticDataRow
+						Department="Executive"
+						Username="John"
+					/>
+					<StaticDataRow
+						Department="Executive"
+						IsGroup="True"
+						Username="Presidents"
+					/>
+				</DataLayer>
+			</Remark>
+			<DataLayer
+				ConnectionID="postgresql"
+				Source="Select employees.last_name,
+  employees.title,
+  Null As IsGroup
+From employees
+UNION
+Select employees.title As last_name,
+  Null As title,
+  True As IsGroup
+From employees"
+				Type="SQL"
+			/>
+			<DataTableColumn
+				Class="NoRowOver rdThemeDataTableCell"
+				ID="colUsername"
+				>
+				<Label
+					Caption="@Data.last_name~"
+				/>
+			</DataTableColumn>
+			<DataTableColumn
+				Class="NoRowOver rdThemeDataTableCell"
+				ID="colDepartment"
+				>
+				<Label
+					Caption="@Data.title~"
+				/>
+			</DataTableColumn>
+		</SharingList>
+		<Note
+			Note="This DataLayer can be used to return a list of users in the Bookmark sharing screen, allowing the user to pick users instead of typing them in.  "
+		/>
+		<Note
+			Note="To use it, create a new DataLayer which returns the list of usernames.  Set the SharingList ShareNameColumn attribute to the column containing usernames."
+		/>
+	</SharedElement>
+	<ideTestParams/>
+</Report>

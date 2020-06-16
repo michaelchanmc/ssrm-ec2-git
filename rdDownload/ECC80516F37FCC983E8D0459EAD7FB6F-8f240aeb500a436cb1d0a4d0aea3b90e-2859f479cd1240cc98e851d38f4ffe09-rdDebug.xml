@@ -1,0 +1,3 @@
+<Procedure ID="sessionGoDefaultBookmarkID" Type="SetSessionVars">
+  <SessionParams goDefaultBookmarkID="" />
+</Procedure>

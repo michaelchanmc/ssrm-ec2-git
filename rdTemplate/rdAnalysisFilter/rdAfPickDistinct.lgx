@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Report ID="rdAfPickDistinct" >
+  <StyleSheet Theme="Signal"/>
+  <Body >
+	  
+	<AnalysisFilterDistinctValues />
+		   
+    <DataTable ID="dtPickList" CellSpacing="1" Width="230" Layout="Fixed" >
+		<Note Note="For picking a single value.  Otherwise this gets removed." />
+		<DataLayer ID="rdAfPickDistinct">
+			<GroupFilter ID="rdAfPickDistinctGroup" GroupColumn="@Request.rdAfDataColumn~" KeepGroupedRows="False" DataType="Text" />
+		</DataLayer>
+		<DataTableColumn>
+			<Label Caption="@Data.Value~" ID="lblFilter" Format="@Request.rdAfColumnFormat~">
+			  <Action Type="Javascript" ID="actionUpdateFilterValue" Javascript="window.parent.rdAfSetPickedFilterValueByRow(&quot;@Request.rdAnalysisFilterID~&quot;,&quot;@Function.RowNumber~&quot;);window.parent.ShowElement(this.id,'popupPickDistinct_@Request.rdAnalysisFilterID~','Hide')"/>
+			</Label>
+      </DataTableColumn>
+    </DataTable>
+
+	<InputCheckboxList ID="lstFilter" CheckboxListDropdown="False" DefaultValue="@Request.rdAfValues~" OptionCaptionColumn="Value" OptionValueColumn="Value" MultiSelect="True" CheckAllCaption="(All)">
+		<Note Note="For picking multiple values.  Otherwise this gets removed." />
+		<InputTextDelimiter Delimiter="," EscapeCharacter="\" Qualifier="&quot;" />
+		<DataLayer ID="rdAfPickDistinct" >
+			<GroupFilter ID="rdAfPickDistinctGroup" GroupColumn="@Request.rdAfDataColumn~" KeepGroupedRows="False" DataType="Text" />
+			<FormattedColumn ID="Value" Format="@Request.rdAfColumnFormat~" DataColumn="@Request.rdAfDataColumn~" />
+			<CalculatedColumn ID="Value" Formula="&quot;@Data.@Request.rdAfDataColumn~~&quot;" />
+			<CompareFilter DataColumn="Value" CompareType="LengthGreaterThan" CompareValue="0" />
+		</DataLayer>
+		<EventHandler DhtmlEvent="onclick">
+			<Action Type="Javascript" Javascript="window.parent.rdAfSetPickedFilterValues(&quot;@Request.rdAnalysisFilterID~&quot;,rdGetSelectedValuesFromCheckboxList('lstFilter', true))" />
+		</EventHandler>
+	</InputCheckboxList>
+	  
+  </Body>
+</Report>

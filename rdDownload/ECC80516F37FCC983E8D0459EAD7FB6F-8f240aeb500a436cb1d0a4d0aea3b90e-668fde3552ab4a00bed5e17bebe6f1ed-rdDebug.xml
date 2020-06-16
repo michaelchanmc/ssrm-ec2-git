@@ -1,0 +1,6 @@
+<Procedure ID="procGetInfoGoVersionNumber" Type="RunDataLayerRows">
+  <DataLayer ID="dlGetVersion" Type="XMLFile" XMLFile="/home/centos/apache-tomcat-8.5.55/webapps/ssrm/_Definitions/_Reports/InfoGo.goHome.lgx" XPath="Report" />
+  <Procedure ID="setInfoGoVersionNumber" Type="SetSessionVars">
+    <SessionParams goPredictGoVersion="@Data.InfoGoVersion~" />
+  </Procedure>
+</Procedure>

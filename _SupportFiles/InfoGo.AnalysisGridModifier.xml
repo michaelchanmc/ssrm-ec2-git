@@ -1,0 +1,11 @@
+<TemplateModifier>
+
+	<!-- Visual Gallery button -->
+	<SetAttribute XPath="//Action[@AddPanelPopupCaption]" AddPanelPopupCaption="Add to Visual Gallery" />
+	<SetAttribute XPath="//Image[@Caption='rdTemplate/rdAddToDBoard.png']" Tooltip="Add to Visual Gallery for use in Dashboards and Reports." />
+	<SetAttribute ID="lblAddToDashboard" Class="ThemeLinkButton" />
+
+	<!-- Disable original report LinkBack. -->
+	<RemoveElement XPath="//BookmarkLinkback"/>
+
+</TemplateModifier>

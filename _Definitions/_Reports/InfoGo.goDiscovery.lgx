@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Report ID="InfoGo.goDiscovery" InfoGoVersion="12.7.348">
+  <MasterReport Report="InfoGo.goMaster" />
+  <DefinitionModifierFile DefinitionModifierFile="goCustomizations.dmfAnalysisGrid.xml" ID="CustomDefinitionModifierFile" />
+  <SetSessionVariables>
+    <SessionParams goBookmarkCaption="=IIF('@Request!Js.goBookmarkCaption~'.length==0,'@Session!Js.goBookmarkCaption~','@Request!Js.goBookmarkCaption~')" goBookmarkCollection="=IIF('@Request!Js.rdBookmarkCollection~'.length==0,'@Session!Js.goBookmarkCollection~','@Request!Js.rdBookmarkCollection~')" goBookmarkID="=IIF('@Request!Js.rdBookmarkID~'.length==0,IIF('@Request!Js.rdNewBookmark~'=='True','','@Session!Js.goBookmarkID~'),'@Request!Js.rdBookmarkID~')" goBookmarkUserName="=IIF('@Request!Js.rdBookmarkUserName~'.length==0,'@Session!Js.goBookmarkUserName~','@Request!Js.rdBookmarkUserName~')" goSharedBookmarkID="=IIF('@Request!Js.rdSharedBookmarkID~'.length==0,'@Session!Js.goSharedBookmarkID~','@Request!Js.rdSharedBookmarkID~')" />
+  </SetSessionVariables>
+  <ReportCenterItem ReportCenterAllowSchedule="False" ReportCenterBookmarks="True" ReportCenterExclude="False" ReportCenterIncludeBookmarks="True" />
+  <Body Class="go-analysis">
+    <Division Class="go-headers" HtmlDiv="True" ID="divSubHeader" ShowModes="rdBrowser">
+      <Rows ID="GoBoxTitle">
+        <Row>
+          <Column ID="GoTitle">
+            <Image AltText="" Caption="InfoGo.iconDiscoverySelected.png" Class="titleMenuIcon" Height="24px" ID="InfoGo.iconDiscoverySelected.png" Tooltip="" Width="24px" />
+            <Label Caption="Discovery" Class="ThemeHeaderLarge go-title" ID="lblTitle" />
+          </Column>
+        </Row>
+      </Rows>
+    </Division>
+    <Division Class="ThemeContent" HtmlDiv="True" ID="divGoContainer">
+      <Division Class="go-content" HtmlDiv="True" ID="divMainContent">
+        <Thinkspace ID="discovery" IsInfoGo="true" LogiApplicationServiceID="goDiscoveryService">
+          <ActiveQueryBuilder HideColumnSelection="@Constants.goHideColumnSelection~" MetadataIDs="@Constants.goMetadataIDsDiscovery~" />
+          <CustomDashboardPanels BookmarkCollectionFolderName="My Visualizations" DisableOriginalReportBookmark="True" GalleryBookmarkCollection="@Application.rdBookmarkCollectionDefault~" />
+          <QuickLaunchMenu />
+        </Thinkspace>
+      </Division>
+    </Division>
+    <IncludeScriptFile IncludedScriptFile="InfoGo.Discovery.qbOnChangeValidation.js" />
+    <InputHidden ID="rdThinkspaceHeight" />
+    <InputHidden DefaultValue="@Request!Js.rdEditThinkspace~" ID="rdEditThinkspace" />
+    <InputHidden DefaultValue="@Request!Js.rdBookmarkCollection~" ID="rdBookmarkCollection" />
+    <InputHidden DefaultValue="@Request!Js.rdDashPanelId~" ID="rdDashPanelId" />
+    <InputHidden DefaultValue="@Request.rdBookmarkID~" ID="rdBookmarkID" />
+    <InputHidden DefaultValue="@Request!Js.rdOriginalReport~" ID="rdOriginalReport" />
+    <Division ID="rdHiddenUpdateButton" ShowModes="None">
+      <Button>
+        <Action Type="Report">
+          <Target Report="@Request!Js.rdOriginalReport~" Type="Report">
+            <WaitPage />
+          </Target>
+          <LinkParams rdBookmarkCollection="@Request!Js.rdBookmarkCollection~" rdBookmarkID="@Request!Js.rdBookmarkID~" rdBookmarkUserName="@Request!Js.rdBookmarkUserName~" rdContentDivID="@Request!Js.rdContentDivID~" rdDashPanelId="@Request!Js.rdDashPanelId~" rdEditThinkspace="True" rdLoadBookmark="True" />
+        </Action>
+      </Button>
+    </Division>
+  </Body>
+  <IncludeSharedElement DefinitionFile="InfoGo.goShared" SharedElementID="sharedScripts" />
+  <PluginCall EngineEvent="LoadDefinition" ID="QueryBuilderPlugin" JavaPluginVersion="DotNet" PluginMethod="CreateAg" PluginName="QueryBuilderPlugin" PluginTypeName="QueryBuilderPlugin.QueryBuilderPlugin" />
+  <IncludeScript ID="setThinkspaceSize" IncludedScript="function setThinkSpaceSize()&#xD;&#xA;{&#xD;&#xA;	var headerFooterSize = 0;&#xD;&#xA;	var qbTile = document.getElementById('querybuilderContainer');&#xD;&#xA;	if(qbTile.style.display === 'none'){&#xD;&#xA;		qbTile = document.getElementById('querybuilderContainerClosed');&#xD;&#xA;	}&#xD;&#xA;	headerFooterSize+=qbTile.getBoundingClientRect().top;&#xD;&#xA;	var divFooter = document.getElementById('divGoFooter');&#xD;&#xA;	headerFooterSize+=divFooter.clientHeight;&#xD;&#xA;	var divThinkspaceContainer = document.getElementsByTagName('logi-thinkspace')[0]&#xD;&#xA;	var allHeight = window.innerHeight;&#xD;&#xA;	var availableHeight = allHeight - headerFooterSize;&#xD;&#xA;	if(divThinkspaceContainer)&#xD;&#xA;		divThinkspaceContainer.style.height = (availableHeight - 20) + 'px';&#xD;&#xA;	document.getElementById('rdThinkspaceHeight').value = (availableHeight - 20) + 'px';&#xD;&#xA;}&#xD;&#xA;setThinkSpaceSize();&#xD;&#xA;try {&#xD;&#xA;    if (window.self == window.top)&#xD;&#xA;	    Y.on('windowresize', function() {setThinkSpaceSize();});&#xD;&#xA;}&#xD;&#xA;catch (err) {}" />
+  <ideTestParams goBookmarkCaption="" rdBookmarkCollection="" rdBookmarkID="" rdBookmarkUserName="" rdContentDivID="" rdDashPanelId="" rdEditThinkspace="" rdNewBookmark="" rdOriginalReport="" rdSharedBookmarkID="" />
+</Report>

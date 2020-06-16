@@ -1,0 +1,1 @@
+<Procedure ID="PlgGetDefaultReportFromSettings" JavaPluginVersion="DotNet" PluginMethod="getDefaultReportFromSettings" PluginName="InfoGoReportManagementPlugin" PluginTypeName="InfoGoReportManagementPlugin.InfoGoReportManagementPlugin" Type="PluginCall" />

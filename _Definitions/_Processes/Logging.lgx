@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<Process
+	ID="logging"
+	>
+	<ideTestParams
+		rdTaskID=""
+	/>
+	<Task
+		ID="log"
+		>
+		<Procedure
+			ID="logger-SimpleLogging"
+			JavaPluginVersion="Version10"
+			PluginMethod="logEvent"
+			PluginName="com.logianalytics.plugins.SimpleLogging"
+			Type="PluginCall"
+			>
+			<PluginParams
+				AppName="@Function.AppVirtualPath~"
+				EventDuration="@Request.EventDuration~"
+				EventName="@Request.EventName~"
+				EventTime="@Request.EventTime~"
+				EventTimePrecise="@Request.EventTimePrecise~"
+				ReportID="@Request.ReportID~"
+				RowCount="@Request.RowCount~"
+				SQL="@Request.SQL~"
+				UserName="@Function.UserName~"
+			/>
+			<Note
+				Note="SimpleLogging uses Tomcat&apos;s default logging configuration"
+			/>
+		</Procedure>
+	</Task>
+</Process>

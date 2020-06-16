@@ -1,0 +1,73 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Process ID="InfoGo.goManageReports" InfoGoVersion="12.7.348">
+  <Task ID="RedirectToDefault">
+    <Procedure Expression="'@Request.rdForWizard~' &lt;&gt; 'True' &amp;&amp; '@Request.rdStudio~' &lt;&gt; 'True' &amp;&amp; '@Request.rdReport~' &lt;&gt; 'rdTemplate/rdDiagnostic'" ID="IfNotStudioScope" Type="If">
+      <Procedure ID="sessionGoDefaultBookmarkID" Type="SetSessionVars">
+        <SessionParams goDefaultBookmarkID="@Constant.goDefaultBookmarkID~" />
+      </Procedure>
+      <Procedure ID="sessionOriginalDefaultReport" Type="SetSessionVars">
+        <SessionParams defaultReport="">
+          <Note Note="gets populated by the plugin to be used in Response.Report" />
+        </SessionParams>
+      </Procedure>
+      <Procedure ID="PlgGetDefaultReportFromSettings" JavaPluginVersion="DotNet" PluginMethod="getDefaultReportFromSettings" PluginName="InfoGoReportManagementPlugin" PluginTypeName="InfoGoReportManagementPlugin.InfoGoReportManagementPlugin" Type="PluginCall" />
+      <Procedure Expression="'@Constant.goDefaultBookmarkID~' == ''  &amp;&amp; '@Constant.goDefaultBookmarkCollection~' == '' &amp;&amp; '@Constant.goDefaultBookmarkUserName~' == '' &amp;&amp; '@Constant.goDefaultBookmarkReportName~' == ''" ID="IfEmptyConstant" Type="If">
+        <Note Note="when the DefaultBookmarkConstants are empty redirect to the original Default Report." />
+        <Response ID="RedirectToDefaultReport" Type="Report">
+          <Target ID="TrgDefaultReport" Report="@Session.defaultReport~" RequestForwarding="True" Type="Report" />
+        </Response>
+      </Procedure>
+      <Procedure ID="plgInjectGlobalMenu" JavaPluginVersion="DotNet" PluginMethod="InjectGlobalMenu" PluginName="InfoGoReportManagementPlugin" PluginTypeName="InfoGoReportManagementPlugin.InfoGoReportManagementPlugin" Type="PluginCall">
+        <PluginParams bookmarkCollection="@Session.goBookmarkCollection~" globalMenuCaption="@Constant.goGlobalMenuCaption~" userName="@Function.UserName~" />
+        <Note Note="call injectGlobalMenu method to update the Side Bar Menu" />
+      </Procedure>
+      <Procedure Expression="'@Session.bookmarkCollectionFound~' == 'False' || '@Session.goDefaultBookmarkShared~' == 'False' || '@Session.goDefaultBookmarkFound~' == 'False'" ID="ifBookmarkCollectionNotFound" Type="If">
+        <Note Note="when current user Bookmark Collection OR goDefaultBookmark are not found then redirect to the original Default Report" />
+        <Response ID="RedirectToDefaultReport" Type="Report">
+          <Target ID="TrgDefaultReport" Report="@Session.defaultReport~" RequestForwarding="True" Type="Report" />
+        </Response>
+      </Procedure>
+      <Response ID="RedirectToNewDefaultReport" Type="Report">
+        <Target ID="TrgNewDefaultReport" Report="@Constant.goDefaultBookmarkReportName~" RequestForwarding="True" Type="Report" />
+        <LinkParams goBookmarkCaption="@Constant.goDefaultBookmarkCaption~" rdBookmarkCollection="@Constant.goDefaultBookmarkCollection~" rdBookmarkID="@Constant.goDefaultBookmarkID~" rdBookmarkUserName="@Constant.goDefaultBookmarkUserName~" rdLoadBookmark="True" rdSharedBookmarkID="@Constant.goDefaultSharedBookmarkID~" />
+      </Response>
+    </Procedure>
+  </Task>
+  <Task ID="SetAsDefault">
+    <Note Note="this task is used to Overwrite the goDefaultBookmark Constants" />
+    <Procedure ID="PlgSetAsDefault" JavaPluginVersion="DotNet" PluginMethod="setConstants" PluginName="InfoGoReportManagementPlugin" PluginTypeName="InfoGoReportManagementPlugin.InfoGoReportManagementPlugin" Type="PluginCall">
+      <PluginParams action="@Request.action~" bookmarkCollection="@Request.bookmarkCollection~" bookmarkID="@Request.bookmarkID~" bookmarkUserName="@Request.bookmarkUserName~" reportName="@Request.reportName~" sharedBookmarkID="@Request.sharedBookmarkID~" />
+    </Procedure>
+    <Procedure ID="sessionGoDefaultBookmarkID" Type="SetSessionVars">
+      <SessionParams goDefaultBookmarkID="@Constant.goDefaultBookmarkID~" />
+    </Procedure>
+    <Response ID="RedirectToSelf" Type="Report">
+      <Target ID="TrgSelf" Report="@Request.reportName~" Type="Report" />
+    </Response>
+  </Task>
+  <LocalData Condition="'@Request.rdCustomLinkName~' &lt;&gt; '' &amp;&amp; '@Request.rdCustomLinkURL~' &lt;&gt; ''" ID="localGetLastCustomLinkBookmark">
+    <DataLayer ID="dlLastCustomLinkBookmark" Type="Bookmarks">
+      <CompareFilter CompareType="=" CompareValue="custom_link" DataColumn="Name" DataType="Text" ID="compareIsCustomLink" />
+      <SortFilter DataType="Date" SortColumn="SaveTime" SortSequence="Descending" />
+      <SequenceColumn ID="sequenceColumn" Increment="1" StartNumber="1" />
+      <CompareFilter CompareType="=" CompareValue="1" DataColumn="sequenceColumn" DataType="Number" ID="getLastSaved" />
+    </DataLayer>
+  </LocalData>
+  <Task ID="AddCustomLinkBookmarkToFolder" SecurityRightID="InfoGoReportManager">
+    <Procedure ID="plgAddCustomLinkToFolder" JavaPluginVersion="DotNet" PluginMethod="addCustomLinkToFolder" PluginName="InfoGoReportManagementPlugin" PluginTypeName="InfoGoReportManagementPlugin.InfoGoReportManagementPlugin" Type="PluginCall">
+      <PluginParams bookmarkCollection="@Local.BookmarkCollection~" bookmarkID="@Local.BookmarkID~" folderID="@Request.FolderID~" />
+    </Procedure>
+    <Response Type="Report">
+      <Target Report="@Request.ResponseReport~" Type="Report" />
+    </Response>
+  </Task>
+  <Task ID="EditCustomLinkBookmark" SecurityRightID="InfoGoReportManager">
+    <Procedure ID="plgEditCustomLink" JavaPluginVersion="DotNet" PluginMethod="editCustomLink" PluginName="InfoGoReportManagementPlugin" PluginTypeName="InfoGoReportManagementPlugin.InfoGoReportManagementPlugin" Type="PluginCall">
+      <PluginParams bookmarkCollection="@Request.BookmarkCollection~" bookmarkID="@Request.BookmarkID~" customLinkName="@Request.CustomLinkName~" customLinkUrl="@Request.CustomLinkURL~" folderID="@Request.FolderID~" />
+    </Procedure>
+    <Response Type="Report">
+      <Target Report="@Request.ResponseReport~" Type="Report" />
+    </Response>
+  </Task>
+  <ideTestParams action="" bookmarkCollection="" BookmarkCollection="" bookmarkID="" BookmarkID="" bookmarkUserName="" CustomLinkName="" CustomLinkURL="" FolderID="" rdCustomLinkName="" rdCustomLinkURL="" rdForWizard="" rdStudio="" rdTaskID="" reportName="" ResponseReport="" sharedBookmarkID="" />
+</Process>

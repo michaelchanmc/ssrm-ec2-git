@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Report ID="InfoGo.goMetadata" InfoGoVersion="12.7.348" SecurityReportRightID="InfoGoDataManager">
+  <MasterReport Report="InfoGo.goMaster" />
+  <DefinitionModifierFile DefinitionModifierFile="goCustomizations.dmfDashboard.xml" ID="CustomDefinitionModifierFile" />
+  <Body Class="go-dashboard">
+    <Division Class="go-headers" HtmlDiv="True" ID="divSubHeader" ShowModes="rdBrowser">
+      <Rows ID="GoBoxTitle">
+        <Row>
+          <Column ID="GoIconPage">
+            <Image AltText="" Caption="InfoGo.iconManageDataSelected.png" Class="titleMenuIcon" Height="24px" Tooltip="" Width="24px" />
+          </Column>
+          <Column ID="GoTitle">
+            <Label Caption="Data Manager" Class="ThemeHeaderLarge go-title" ID="lblTitle" />
+          </Column>
+        </Row>
+      </Rows>
+    </Division>
+    <Division Class="ThemeContent" HtmlDiv="True" ID="divGoContainer">
+      <Division Class="go-content" HtmlDiv="True" ID="divMainContent">
+        <IncludeFrame FrameBorder="False" ID="frameMetadata" Scrolling="False" SubReportMode="IncludeFrame">
+          <Target Link="rdTemplate/rdMetadata.aspx" Type="IncludeFrameLink" />
+        </IncludeFrame>
+      </Division>
+    </Division>
+  </Body>
+  <IncludeSharedElement DefinitionFile="InfoGo.goShared" SharedElementID="sharedScripts" />
+</Report>

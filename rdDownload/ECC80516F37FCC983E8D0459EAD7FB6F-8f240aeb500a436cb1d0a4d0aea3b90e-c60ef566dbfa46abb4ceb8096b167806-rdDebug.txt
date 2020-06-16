@@ -1,0 +1,7 @@
+Modifier File: /home/centos/apache-tomcat-8.5.55/webapps/ssrm/rdDataCache/goMasterModifier_Davolio.xml
+
+  XPath = //Division[@ID='divSidebar']/MenuTree[@ID='menuTreeSide']
+    AppendChildElement
+      MenuBranch
+
+Done.  Update Count: 1

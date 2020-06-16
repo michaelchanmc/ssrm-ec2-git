@@ -1,0 +1,8 @@
+<TemplateModifier>
+  <AppendChildElement XPath="//Division[@ID='divSidebar']/MenuTree[@ID='menuTreeSide']">
+    <NewElement>
+      <MenuBranch ID="menuBranchItem_globalMenu" SecurityRightID="" LevelIndent="5" Class="ThemeHeader" Caption="Menu" />
+      <Stub />
+    </NewElement>
+  </AppendChildElement>
+</TemplateModifier>

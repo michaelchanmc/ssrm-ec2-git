@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Report ID="InfoGo.goGalleryMigration" InfoGoVersion="12.7.348" SecurityReportRightID="InfoGoDataManager">
+  <MasterReport Report="InfoGo.goMaster" />
+  <DefinitionModifierFile DefinitionModifierFile="goCustomizations.dmfDashboard.xml" ID="CustomDefinitionModifierFile" />
+  <Body Class="go-dashboard">
+    <Division Class="ThemeContent" HtmlDiv="True" ID="divGoContainer">
+      <Division Class="go-content" HtmlDiv="True" ID="divMainContent">
+        <IncludeFrame FrameBorder="False" ID="frameMigration" Scrolling="False" SubReportMode="IncludeFrame">
+          <Target ID="tgtGalleryMigration" Report="rdTemplate/rdGalleryMigration" Type="IncludeFrameReport" />
+        </IncludeFrame>
+      </Division>
+    </Division>
+  </Body>
+  <IncludeSharedElement DefinitionFile="InfoGo.goShared" SharedElementID="sharedScripts" />
+</Report>

@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Report
+	ID="goCustomizations.goEmailAddressList"
+	>
+	<SharedElement
+		ID="sharedEmailList"
+		>
+		<Remark>
+			<EmailList
+				EmailColumnName="Email"
+				>
+				<DataLayer
+					ID="dlEmailAddressList"
+					Type="Static"
+					>
+					<StaticDataRow
+						Email="george.washington@whitehouse.gov"
+					/>
+					<StaticDataRow
+						Email="bfranklin@gmail.com"
+					/>
+				</DataLayer>
+			</EmailList>
+		</Remark>
+		<Note
+			Note="This DataLayer can be used to return a list of email addresses, allowing the user to make selections in addition to simply  them in.  "
+		/>
+		<Note
+			Note="To use it, create a new DataLayer which returns the list of email addresses.  Set the EmailList EmailColumnName attribute to the column containing usernames."
+		/>
+	</SharedElement>
+	<ideTestParams/>
+</Report>

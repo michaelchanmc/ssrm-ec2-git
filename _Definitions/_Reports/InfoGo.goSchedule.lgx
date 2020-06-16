@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Report ID="InfoGo.goSchedule" InfoGoVersion="12.7.348">
+  <DefinitionModifierFile DefinitionModifierFile="goCustomizations.dmfSchedule.xml" ID="CustomDefinitionModifierFile" />
+  <ReportCenterMenu SchedulerConnectionID="goScheduler" SchedulerSessionVariables="@Constant.goSchedulerSessionVars~"  sslOffloading="True">
+    <Note Note="This definition allows the rdRcCommand LinkParam to work.  This report becomes the popup panel for scheduling." />
+    <IncludeSharedElement DefinitionFile="goCustomizations.goEmailAddressList" SharedElementID="sharedEmailList" />
+  </ReportCenterMenu>
+  <SetSessionVariables>
+    <SessionParams rdRcScheduleConnID="goScheduler" />
+  </SetSessionVariables>
+  <ideTestParams />
+</Report>

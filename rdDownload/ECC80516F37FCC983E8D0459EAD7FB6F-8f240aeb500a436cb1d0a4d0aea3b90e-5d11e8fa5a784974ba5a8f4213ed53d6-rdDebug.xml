@@ -1,0 +1,3 @@
+<Procedure ID="setInfoGoVersionNumber" Type="SetSessionVars">
+  <SessionParams goPredictGoVersion="12.7.348" />
+</Procedure>

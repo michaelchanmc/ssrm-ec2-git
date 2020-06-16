@@ -1,0 +1,3 @@
+<Procedure ID="plgInjectGlobalMenu" JavaPluginVersion="DotNet" PluginMethod="InjectGlobalMenu" PluginName="InfoGoReportManagementPlugin" PluginTypeName="InfoGoReportManagementPlugin.InfoGoReportManagementPlugin" Type="PluginCall">
+  <PluginParams bookmarkCollection="" globalMenuCaption="" userName="Davolio" />
+</Procedure>

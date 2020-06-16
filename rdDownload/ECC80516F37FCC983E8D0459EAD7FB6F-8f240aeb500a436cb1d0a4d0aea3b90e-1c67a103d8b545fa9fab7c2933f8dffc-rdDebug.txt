@@ -1,0 +1,38 @@
+Modifier File: /home/centos/apache-tomcat-8.5.55/webapps/ssrm/_SupportFiles/goCustomizations.tmfBookmarkOrganizer.xml
+
+  ID = rdFoldersDiv
+    AppendChildElement
+      Division
+
+  XPath = //DataTable[@ID='dtFolders']/DataTableColumn[@ID='colActions']/Division/Image/Action[@Type='Popup']/PopupOption[@ID='ppoAddFolder']
+    InsertAfterElement
+      PopupOption
+
+    InsertAfterElement
+      PopupOption
+
+  XPath = //DataTableColumn[@ID='colDragName']/DroppableDivision/Division[@ID='dragDivisionWrapper'][1]
+    SetAttribute
+      Condition = '@Data.ID~' <> 'sharedFolders' && "'','globalMenu'".indexOf('@Data.ID~') = -1 && @Data.Depth~ > 0
+
+  XPath = //DataTableColumn[@ID='colDragName']/DroppableDivision/Division[@ID='dragDivisionWrapper'][2]
+    SetAttribute
+      Condition = '@Data.ID~' == 'sharedFolders' || "'','globalMenu'".indexOf('@Data.ID~') > -1 || @Data.Depth~ == 0
+
+  XPath = //DataTableColumn[@ID='colActions']/Division[not(@ID)]/Image[1]
+    SetAttribute
+      Condition = '@Data.FolderOwner~' == '' && "'','globalMenu'".indexOf('@Data.ID~') > -1 || @Data.Depth~ == 0
+
+  XPath = //DataTableColumn[@ID='colActions']/Division[not(@ID)]/Image[2]
+    SetAttribute
+      Condition = '@Data.FolderOwner~' == '' && "'','globalMenu'".indexOf('@Data.ID~') = -1 && @Data.Depth~ > 0
+
+  XPath = //DataTable[@ID='dtFolders']/DataLayer[@Folders='True']
+    AppendChildElement
+      Lookup
+
+  XPath = //DataTable[@ID='dtFolders']/DataLayer[@Folders='True']
+    AppendChildElement
+      ConditionFilter
+
+Done.  Update Count: 9

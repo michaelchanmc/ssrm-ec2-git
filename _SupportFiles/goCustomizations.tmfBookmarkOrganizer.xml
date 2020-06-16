@@ -1,0 +1,93 @@
+<TemplateModifier>
+
+    <AppendChildElement ID="rdFoldersDiv">
+        <NewElement>
+            <Division ID="divAddCustomLink">
+				<PopupPanel Caption="Custom Link" Draggable="True" ID="ppAddCustomLink" PopupModal="True" PopupPanelLocation="Center">
+					<Rows CellSpacing="2" ID="rdAddCustomLink" TableBorder="0" Width="100" WidthScale="%">
+						<Row ID="rowAddCustomLink">
+							<Column>
+								<Rows ID="rowsAddCustomLink" Width="100" WidthScale="%">
+									<Row>
+										<Column>
+											<Rows CellSpacing="10">
+												<Row ID="rowCustomLinkName">
+													<Column>
+														<Label Caption="Custom Link Name:" For="rdCustomLinkNameID" ID="lblNameCustomLink" />
+													</Column>
+													<Column>
+														<InputText DefaultValue="@Request.rdCustomLinkURL~" ID="rdCustomLinkName" InputSize="50" Value="Caption">
+															<Validation ErrorMsg="The Custom Link Name cannot be blank." Type="Required" />
+														</InputText>
+														<LineBreak LineCount="2" />
+													</Column>
+												</Row>
+												<Row ID="rowCustomLinkURL">
+													<Column>
+														<Label Caption="Custom Link URL:" For="rdCustomLinkID" ID="lblCustomLink" />
+													</Column>
+													<Column>
+														<InputTextArea DefaultValue="@Request.rdCustomLinkName~" ID="rdCustomLinkURL" InputColumns="100" InputRows="3">
+															<Validation ErrorMsg="The Custom Link URL cannot be blank." Type="Required" />
+														</InputTextArea>
+														<LineBreak LineCount="2" />
+													</Column>
+												</Row>
+												<Row>
+													<Column Width="100" WidthScale="%">
+														<Division ID="rdCustomLinkSaveID">
+															<Label Caption="Done" Class="ThemeLinkButton" ID="lblSaveAddCustomLink">
+																<EventHandler DhtmlEvent="onclick">
+																	<Action ID="actSaveAddCustomLink" Javascript="addCustomLinkToFolder(&apos;@Request.rdReport~&apos;,document.getElementById(&apos;rdFolderID&apos;).value.toString(),document.getElementById(&apos;rdBookmarkCollection&apos;).value.toString()); ShowElement(null, &apos;ppAddCustomLink&apos;, &apos;Hide&apos;);" Type="Javascript" Validate="True">
+																		<Note Note="the Global Menu plugin will change the javascript attribute content." />
+																	</Action>
+																</EventHandler>
+															</Label>
+														</Division>
+													</Column>
+												</Row>
+											</Rows>
+										</Column>
+									</Row>
+								</Rows>
+							</Column>
+						</Row>
+					</Rows>
+				</PopupPanel>
+			</Division>
+        </NewElement>
+    </AppendChildElement>
+	
+	<InsertAfterElement XPath="//DataTable[@ID='dtFolders']/DataTableColumn[@ID='colActions']/Division/Image/Action[@Type='Popup']/PopupOption[@ID='ppoAddFolder']">
+		<NewElement>
+			<PopupOption Caption="Add Custom Link" ID="ppoAddCustomLink" Condition="'@Data.IsGlobalMenuFolder~' == 'True'">
+                <Action Type="Javascript" ID="actAddCustomLink" Javascript="document.getElementById('clEditMode').value ='False'; document.getElementById('rdFolderID').value = '@Data.ID~'; document.getElementById('rdCustomLinkURL').value =''; document.getElementById('rdCustomLinkName').value =''; ShowElement(this.id, 'ppAddCustomLink', 'Show');" />
+            </PopupOption>
+		</NewElement>
+	</InsertAfterElement>
+	
+	<SetAttribute XPath="//DataTableColumn[@ID='colDragName']/DroppableDivision/Division[@ID='dragDivisionWrapper'][1]" Condition="'@Data.ID~' &lt;&gt; 'sharedFolders' &amp;&amp; &quot;'','globalMenu'&quot;.indexOf('@Data.ID~') = -1 &amp;&amp; @Data.Depth~ &gt; 0" />
+	<SetAttribute XPath="//DataTableColumn[@ID='colDragName']/DroppableDivision/Division[@ID='dragDivisionWrapper'][2]" Condition="'@Data.ID~' == 'sharedFolders' || &quot;'','globalMenu'&quot;.indexOf('@Data.ID~') &gt; -1 || @Data.Depth~ == 0" />
+
+	<SetAttribute XPath="//DataTableColumn[@ID='colActions']/Division[not(@ID)]/Image[1]" Condition="'@Data.FolderOwner~' == '' &amp;&amp; &quot;'','globalMenu'&quot;.indexOf('@Data.ID~') &gt; -1 || @Data.Depth~ == 0" />
+	<SetAttribute XPath="//DataTableColumn[@ID='colActions']/Division[not(@ID)]/Image[2]" Condition="'@Data.FolderOwner~' == '' &amp;&amp; &quot;'','globalMenu'&quot;.indexOf('@Data.ID~') = -1 &amp;&amp; @Data.Depth~ &gt; 0" />
+	
+	<AppendChildElement XPath="//DataTable[@ID='dtFolders']/DataLayer[@Folders='True']">
+		<NewElement>
+			<Lookup ID="lookupBookmarks">
+              <DataLayer BookmarkCollection="" Folders="False" ID="BookmarksDL" Type="Bookmarks">
+                <CompareFilter CompareType="&lt;&gt;" DataColumn="BookmarkID" DataType="Text" ID="compareIsBookmark" />
+                <GroupFilter GroupColumn="FolderID" DataType="Text" KeepGroupedRows="False" ID="groupByFolder">
+                  <GroupAggregateColumn AggregateFunction="Count" ID="cntBookmarksUnderFolder" AggregateColumn="FolderID" DataType="Text" />
+                </GroupFilter>
+                <CompareFilter CompareType="=" DataColumn="FolderID" ID="cmpInsideCurrentFolder" CompareValue="@Data.ID~" DataType="Text" />
+              </DataLayer>
+            </Lookup>
+		</NewElement>
+	</AppendChildElement>
+	<AppendChildElement XPath="//DataTable[@ID='dtFolders']/DataLayer[@Folders='True']">
+		<NewElement>
+            <ConditionFilter Condition="('@Data.Name~' &lt;&gt; 'My Visualizations') ||&#xD;&#xA;('@Data.HasChildren~' == 'True') ||&#xD;&#xA;(@Data.cntBookmarksUnderFolder~ &gt; 0)" ID="showHideMyVisualizations" />
+		</NewElement>
+	</AppendChildElement>
+</TemplateModifier>

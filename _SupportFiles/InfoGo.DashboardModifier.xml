@@ -1,0 +1,32 @@
+<TemplateModifier>
+
+	<!-- Add Panels popup option -->
+	<SetAttribute XPath="//PopupOption[@ID='ppoAddPanels']" Caption="Add from Visual Gallery" />
+
+	<!-- Gallery Title -->
+	<SetAttribute XPath="//PopupPanel[@ID='ppAddPanels' or (@ID='ppChangeDashboard' and not(@rdReportAuthorToolbar='True'))]" Caption="Visual Gallery"/>
+
+	<!-- Gallery Buttons -->
+	<SetAttribute XPath="//Label[@Caption='Delete this Panel']" Caption="Delete Visual" Tooltip="Delete Visual from Gallery" />
+
+	<!-- Gallery New Analysis Text -->
+	<InsertBeforeElement ID="ppAddPanelsDone">
+		<NewElement>
+			<Column Width="90" WidthScale="%" Class="rdNewAnalysisColumn">
+				<Division HtmlDiv="False" Class="rdNewAnalysisText" ID="rdNewAnalysisText" Condition="&quot;@Constant.goAnalysisType~&quot; == &quot;&quot; || &quot;@Constant.goAnalysisType~&quot; == &quot;AnalysisGrid&quot;">
+					<Label Caption="...or " />
+					<Label Caption="Create Visuals" Class="rdNewAnalysisLink">
+						<Action Type="Report" ID="actNewAnalysis" >
+							<Target Type="Report" FrameID="Self" Report="InfoGo.goAnalysisGrid" />
+							<LinkParams rdAgReset="True" rdNewBookmark="True" goBookmarkCaption="@Constant.goDefaultAnalysisName~" />
+						</Action>
+					</Label>
+					<Label Caption=" and Add to Visual Gallery" />
+				</Division>
+			</Column>
+		</NewElement>
+	</InsertBeforeElement>
+
+	<SetAttribute ID="ppAddPanelsDone" Width="10"/>
+
+</TemplateModifier>

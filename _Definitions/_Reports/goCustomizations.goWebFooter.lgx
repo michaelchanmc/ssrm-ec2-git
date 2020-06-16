@@ -1,0 +1,46 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Report
+	ID="goCustomizations.goWebFooter"
+	>
+	<SharedElement
+		ID="sharedFooter"
+		>
+		<Division
+			Class="ThemeMasterReportFooterFrame"
+			HtmlDiv="True"
+			ID="divGoFooter"
+			ShowModes="rdBrowser"
+			>
+			<Division
+				Class="go-footer-spacer"
+				HtmlDiv="True"
+				ID="divGoFooterSpacer"
+				>
+				<Note
+					Note="Remark this or use it for a thin bottom line"
+				/>
+			</Division>
+			<Division
+				Class="ThemeContent"
+				HtmlDiv="True"
+				ID="divFooterContent"
+				>
+				<Note
+					Note="Remark this or edit content in here"
+				/>
+				<Note
+					Note="Add ThemeContent class to divFooterContent for margins"
+				/>
+				<Label
+					Caption="© 2015-2019 Logi Analytics"
+					Format="HTML"
+					ID="lblCopyright"
+				/>
+				<Label
+					Caption=" | v@Session.goPredictGoVersion~"
+				/>
+			</Division>
+		</Division>
+	</SharedElement>
+	<ideTestParams/>
+</Report>

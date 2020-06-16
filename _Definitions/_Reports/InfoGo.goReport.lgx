@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Report ID="InfoGo.goReport" InfoGoVersion="12.7.348">
+  <MasterReport Report="InfoGo.goMaster" />
+  <DefinitionModifierFile DefinitionModifierFile="goCustomizations.dmfReport.xml" ID="CustomDefinitionModifierFile" />
+  <SetSessionVariables>
+    <SessionParams goBookmarkCaption="=IIF('@Request!Js.goBookmarkCaption~'.length==0,'@Session!Js.goBookmarkCaption~','@Request!Js.goBookmarkCaption~')" goBookmarkCollection="=IIF('@Request!Js.rdBookmarkCollection~'.length==0,'@Session!Js.goBookmarkCollection~','@Request!Js.rdBookmarkCollection~')" goBookmarkID="=IIF('@Request!Js.rdBookmarkID~'.length==0,IIF('@Request!Js.rdNewBookmark~'=='True','','@Session!Js.goBookmarkID~'),'@Request!Js.rdBookmarkID~')" goBookmarkUserName="=IIF('@Request!Js.rdBookmarkUserName~'.length==0,'@Session!Js.goBookmarkUserName~','@Request!Js.rdBookmarkUserName~')" goSharedBookmarkID="=IIF('@Request!Js.rdSharedBookmarkID~'.length==0,'@Session!Js.goSharedBookmarkID~','@Request!Js.rdSharedBookmarkID~')" />
+  </SetSessionVariables>
+  <ReportCenterItem ReportCenterAllowedExportFormats="PDF" ReportCenterAllowSchedule="True" ReportCenterBookmarks="True" ReportCenterExclude="False" ReportCenterIncludeBookmarks="True" />
+  <Body Class="go-report">
+    <Division Class="go-headers" HtmlDiv="True" ID="divSubHeader">
+      <Rows ID="GoBoxTitle">
+        <Row>
+          <Column ID="GoIconPage">
+            <Image AltText="" Caption="InfoGo.iconReportSelected.png" Class="titleMenuIcon" Height="24px" ID="InfoGo.iconReportSelected.png" Tooltip="" Width="24px" />
+          </Column>
+          <Column ID="GoTitle">
+            <IncludeSharedElement DefinitionFile="InfoGo.goShared" SharedElementID="sharedTitleWithRename" />
+          </Column>
+        </Row>
+      </Rows>
+    </Division>
+    <Division HtmlDiv="True" ID="divGoContainer">
+      <Division Class="go-content" HtmlDiv="True" ID="divMainContent">
+        <ReportAuthor BookmarkDescription="Report" GalleryBookmarkCollection="@Application.rdBookmarkCollectionDefault~" ID="Report" SaveFileStarter="@Constant.goReportStarterFile~" TemplateModifierFile="InfoGo.DashboardModifier.xml" UploadedFileFolder="@Application.rdBookmarkLocation~goUploadedFiles">
+          <AutoBookmark BookmarkDescription="@Session!Js.goBookmarkCaption~" BookmarkID="@Session.goBookmarkID~" BookmarkSessionIDs="@Constant.goCustomTableSessionVars~" />
+          <AnalysisGridVisualizationEditing AllowPauseDataRetrieval="@Constant.goAllowPauseDataRetrieval~" BatchSelection="@Constants.goBatchSelection~" Condition="'@Constants.goDashboardPanelEditing~' == 'True'" ExcludeDetailRowsDefault="@Constant.goDefaultExcludeDetailRows~" GalleryBookmarkCollection="@Application.rdBookmarkCollectionDefault~" TemplateModifierFile="InfoGo.AnalysisGridModifier.xml" />
+          <IncludeSharedElement DefinitionFile="goCustomizations.goExtraGalleryFiles" SharedElementID="sharedExtraGalleryFiles" />
+        </ReportAuthor>
+      </Division>
+    </Division>
+  </Body>
+  <IncludeSharedElement DefinitionFile="InfoGo.goShared" SharedElementID="sharedScripts" />
+  <ideTestParams goBookmarkCaption="" rdBookmarkCollection="" rdBookmarkID="" rdBookmarkUserName="" rdNewBookmark="" rdSharedBookmarkID="" />
+</Report>

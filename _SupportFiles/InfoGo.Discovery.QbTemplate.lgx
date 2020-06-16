@@ -1,0 +1,31 @@
+<Report InfoGoVersion="12.7.348">
+  <AnalysisGrid ID="AgForThinkSpace" BatchSelection="@Constants.goBatchSelection~">
+    <WaitPage />
+    <GeneratedElementPluginCall PluginMethod="CleanAg" PluginName="QueryBuilderPlugin" PluginTypeName="QueryBuilderPlugin.QueryBuilderPlugin" JavaPluginVersion="DotNet" />
+  </AnalysisGrid>
+  <Division ID="divThinkSpaceContainer" HtmlDiv="True">
+    <Rows Width="100" WidthScale="%">
+      <Row>
+        <Column ID="querybuilderContainer" Width="400" WidthScale="px" Class="ThemeAlignTop PreviewMenuBG">
+          <Division HtmlDiv="True" Class="LaunchPanel QueryBuilderHeader">
+            <Image Caption="InfoGo.iconCloseGray.png" Class="QueryBuilderCloseButton ImgClose" ID="lblQbClose" Tooltip="Close">
+              <Action Type="Javascript" Javascript="ShowElement(this.id,'querybuilderContainer,querybuilderContainerClosed','Toggle','');&#xD;&#xA;if(window.jQuery){&#xD;&#xA;	$(window).trigger('resize');&#xD;&#xA;}" ID="actCloseQb" Class="ThemeMasterReportTopFrame BtnClose PreviewMenuBG" />
+            </Image>
+          </Division>
+        </Column>
+        <Column ID="querybuilderContainerClosed" Width="40" WidthScale="px" Class="ThemeAlignTop PreviewMenuBG" ShowModes="None">
+          <Division HtmlDiv="True" Class="LaunchPanel QueryBuilderHeader QueryBuilderClosed">
+            <Image Caption="InfoGo.iconQueryBuilderSub.png" Class="QueryBuilderOpenButton BtnQueryBuilder">
+              <Action Type="Javascript" Javascript="ShowElement(this.id,'querybuilderContainer,querybuilderContainerClosed','Toggle','');&#xD;&#xA;if(window.jQuery){&#xD;&#xA;	$(window).trigger('resize');&#xD;&#xA;}" ID="actOpenQb" />
+            </Image>
+          </Division>
+        </Column>
+        <Column ID="thinkspaceContainer">
+          <Division ID="divSelectData" Class="ThemeAlignCenter">
+            <Label Caption="Use Query Builder to build your Thinkspace" Class="ThemeHeaderLarge" ID="lblSelectData" />
+          </Division>
+        </Column>
+      </Row>
+    </Rows>
+  </Division>
+</Report>

@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Report ID="InfoGo.goMaster" InfoGoVersion="12.7.348">
+  <DefinitionModifierFile DefinitionModifierFile="@Session.rdDataCacheLocation~/goMasterModifier_@Function.UserName~.xml" ID="DefinitionModifier" />
+  <DefinitionModifierFile DefinitionModifierFile="goCustomizations.dmfMaster.xml" ID="CustomDefinitionModifierFile" />
+  <IncludeSharedElement DefinitionFile="InfoGo.goShared" SharedElementID="sharedStyles" />
+  <ReportHeader>
+    <Division Class="go-headers" HtmlDiv="True" ID="divAllHeaders">
+      <IncludeSharedElement DefinitionFile="goCustomizations.goWebHeader" SharedElementID="sharedHeader" />
+    </Division>
+  </ReportHeader>
+  <Body>
+    <Rows CellSpacing="0" Width="100" WidthScale="%">
+      <Row>
+        <Column Class="LaunchPanel ThemeAlignTop ThemeAlignCenter" ID="LaunchBar" Width="40" WidthScale="px">
+          <IncludeSharedElement DefinitionFile="InfoGo.goShared" SharedElementID="sharedGoBox" />
+        </Column>
+        <Column Class="ThemeMasterReportLeftFrame ThemeAlignTop" ID="LeftFrame" ShowModes="None">
+          <Division ID="divSidebar">
+            <MenuTree Class="ThemeMenuItemLink" HorizontalMenuSpacing="5" ID="menuTreeSide" LevelIndent="10" Width="200" WidthScale="px" />
+            <LineBreak LineCount="4" />
+          </Division>
+        </Column>
+        <Column Class="ThemeAlignTop" Width="100" WidthScale="%">
+          <MasterReportContent />
+        </Column>
+      </Row>
+    </Rows>
+  </Body>
+  <ReportFooter>
+    <IncludeSharedElement DefinitionFile="goCustomizations.goWebFooter" SharedElementID="sharedFooter" />
+  </ReportFooter>
+  <ideTestParams />
+</Report>

@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Report ID="InfoGo.goAnalysisGrid" InfoGoVersion="12.7.348">
+  <MasterReport Report="InfoGo.goMaster" />
+  <DefinitionModifierFile DefinitionModifierFile="goCustomizations.dmfAnalysisGrid.xml" ID="CustomDefinitionModifierFile" />
+  <SetSessionVariables>
+    <SessionParams goBookmarkCaption="=IIF('@Request!Js.goBookmarkCaption~'.length==0,'@Session!Js.goBookmarkCaption~','@Request!Js.goBookmarkCaption~')" goBookmarkCollection="=IIF('@Request!Js.rdBookmarkCollection~'.length==0,'@Session!Js.goBookmarkCollection~','@Request!Js.rdBookmarkCollection~')" goBookmarkID="=IIF('@Request!Js.rdBookmarkID~'.length==0,IIF('@Request!Js.rdNewBookmark~'=='True','','@Session!Js.goBookmarkID~'),'@Request!Js.rdBookmarkID~')" goBookmarkUserName="=IIF('@Request!Js.rdBookmarkUserName~'.length==0,'@Session!Js.goBookmarkUserName~','@Request!Js.rdBookmarkUserName~')" goSharedBookmarkID="=IIF('@Request!Js.rdSharedBookmarkID~'.length==0,'@Session!Js.goSharedBookmarkID~','@Request!Js.rdSharedBookmarkID~')" />
+  </SetSessionVariables>
+  <ReportCenterItem ReportCenterAllowSchedule="False" ReportCenterBookmarks="True" ReportCenterExclude="False" ReportCenterIncludeBookmarks="True" />
+  <Body Class="go-analysis">
+    <Division Class="go-headers" HtmlDiv="True" ID="divSubHeader" ShowModes="rdBrowser">
+      <Rows ID="GoBoxTitle">
+        <Row>
+          <Column ID="GoIconPage">
+            <Image AltText="" Caption="InfoGo.iconAnalisysGridSelected.png" Class="titleMenuIcon" Height="24px" ID="InfoGo.iconAnalisysGridSelected.png" Tooltip="" Width="24px" />
+          </Column>
+          <Column ID="GoTitle">
+            <IncludeSharedElement DefinitionFile="InfoGo.goShared" SharedElementID="sharedTitleWithRename" />
+          </Column>
+        </Row>
+      </Rows>
+    </Division>
+    <Division Class="ThemeContent" HtmlDiv="True" ID="divGoContainer">
+      <Division Class="go-content" HtmlDiv="True" ID="divMainContent">
+        <AnalysisGrid AjaxPaging="True" AllowPauseDataRetrieval="@Constant.goAllowPauseDataRetrieval~" BatchSelection="@Constants.goBatchSelection~" ExcludeDetailRowsDefault="@Constant.goDefaultExcludeDetailRows~" HideFunctionNamesDefault="@Constant.goDefaultHideFunctionNames~" ID="ag" ShowPageNumber="True" SortArrows="True" TemplateModifierFile="InfoGo.AnalysisGridModifier.xml">
+          <ActiveQueryBuilder HideColumnSelection="@Constants.goHideColumnSelection~" MetadataIDs="@Constants.goMetadataIDsAnalysisGrid~" PrependSchema="@Constants.goIncludeSchema~" />
+          <AutoBookmark BookmarkDescription="@Session!Js.goBookmarkCaption~" BookmarkID="@Session.goBookmarkID~" BookmarkSessionIDs="@Constant.goCustomTableSessionVars~" />
+          <CustomDashboardPanels BookmarkCollectionFolderName="My Visualizations" DisableOriginalReportBookmark="True" GalleryBookmarkCollection="@Application.rdBookmarkCollectionDefault~" />
+          <CrosstabComparison ComparisonShowTooltips="Percent" ComparisonShowValues="Percent" ComparisonStyle="ColorSpectrum" />
+          <WaitPage />
+          <DataForecast />
+        </AnalysisGrid>
+      </Division>
+    </Division>
+  </Body>
+  <IncludeSharedElement DefinitionFile="InfoGo.goShared" SharedElementID="sharedScripts" />
+  <ideTestParams goBookmarkCaption="" rdBookmarkCollection="" rdBookmarkID="" rdBookmarkUserName="" rdNewBookmark="" rdSharedBookmarkID="" />
+</Report>

@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Report ID="InfoGo.goCustomLink" InfoGoVersion="12.7.348">
+  <Body />
+  <ReportCenterItem ReportCenterAllowSchedule="True" ReportCenterExclude="False" ReportCenterIncludeBookmarks="True" />
+  <PluginCall EngineEvent="LoadDefinition" ID="plgRedirectToCustomLink" JavaPluginVersion="DotNet" PluginMethod="redirectToCustomLink" PluginName="InfoGoReportManagementPlugin" PluginTypeName="InfoGoReportManagementPlugin.InfoGoReportManagementPlugin">
+    <PluginParams linkName="@Request.rdCustomLinkName~" linkURL="@Request.rdCustomLinkURL~" />
+  </PluginCall>
+  <ideTestParams rdCustomLinkName="" rdCustomLinkURL="" />
+</Report>

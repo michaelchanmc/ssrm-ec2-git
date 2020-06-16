@@ -1,0 +1,671 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+   <head>
+      <meta http-equiv="CACHE-CONTROL" content="NO-CACHE" />
+      <meta http-equiv="Expires" content="-1" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+      <title>rdDebug</title>
+      <style>
+	  BODY {color: darkslategray; background-color: white; margin-right: 10px; margin-left: 10px; font-size: 11px; font-family: verdana, arial, sans-serif;}
+.MoreInfo { BACKGROUND: Gray; color:White; }
+.ErrDiv { BACKGROUND: #f0f0f0; }
+.MajorTitle { font-size:9pt; font-weight:bold; }
+.bld { font-weight:bold; }
+.InfHeader { font-weight:bold; text-align: center; width: 100%; }
+.WrnHeader { font-weight:bold; text-align: center; width: 100%; }
+.ErrHeader { color:Maroon; font-size:12pt; font-weight:bold; width: 100%; }
+.ErrMessage { color:Maroon; font-size:9pt; width: 100%; }
+.BodyTable { border-collapse: collapse; width: 99%; }
+.DebugTable { border-collapse: collapse; height: 11px; width: auto; border: solid 1px #3f60af; }
+.DebugTable tr th { text-align: left; }
+.DebugTable tr td { border: solid 1px #bbbbbb; font-size: 11px; }
+.BodyTable tr td table .StepRow td { border-top: solid 1px #3f60af; background-color: #454545; }
+.HeaderRow th { background-color: #eaeff8; border-bottom: solid 1px #3f60af; }
+.LogiDarkGreen { color: #639e12; font-weight: normal; font-size: 18px; }
+.logiPurple { color: #3f60af; font-size: 18px; }
+.TimeRight { text-align: right; padding-right: 4px; }
+.SecondHeader { background-color: #3f60af; color: white; padding-left: 4px; font-weight: bold; }
+.title { font-size: 14px; font-weight:bold; padding-top: 8px;padding-bottom:8px; }
+.GroupHdr { background-color: #cc0033; color: white; padding-left: 4px; font-weight: bold; }
+.TopError { border: solid 1px #cc0033; }
+.TopError tr td { border-top: solid 1px #cc0033; padding-left: 4px; font-size: 11px; }
+.InnerError { border-left: solid 1px #cc0033; border-right: solid 1px #cc0033; border-bottom: solid 1px #cc0033; font-size: 11px; }
+.InnerError tr td { padding-left: 4px; font-size: 11px; }
+.InnerErrorMessage td { padding-left: 4px; color: #cc0033; font-size: 11px; }
+td.progress { width: 10%; }
+td.progress .text { position: relative; }
+td.progress span { position: absolute; top: 0px; right: 0px; }
+div.progressBar, div.previousElapsed { background-color: #d4e4a4; float: left; clear: right; } /* Clear right is for IE7 */
+div.previousElapsed { background-color: #efffbf; }
+/* a.generateProgressBars { color: #0000EE; } */
+td,th {
+	font-size:11px;
+	/*border: 1px solid black;*/
+	padding: 0;
+	white-space: pre;           /* CSS 2.0 */
+	white-space: pre-wrap;      /* CSS 2.1 */
+	white-space: pre-line;      /* CSS 3.0 */
+	white-space: -pre-wrap;     /* Opera 4-6 */
+	white-space: -o-pre-wrap;   /* Opera 7 */
+	white-space: -moz-pre-wrap; /* Mozilla */
+	white-space: -hp-pre-wrap;  /* HP Printers */
+	word-wrap: break-word;      /* IE 5+ */
+}
+th {
+border: 1px solid black;
+}
+.title{margin-top:8px; margin-bottom:8px;}
+th{padding: 3px;}
+td {padding: 2px;}
+h3 {text-align:left;}
+</style>
+<script>
+    function rdDebugExpand(sID) {
+        var eleMoreInfo = document.getElementById(sID);
+        eleMoreInfo.style.display = "";
+        eleMoreInfo.parentNode.removeChild(eleMoreInfo.previousSibling);
+    }
+
+    function rdDebugDownloadTrace() {
+        var sDebugUrl = document.body.getAttribute("rdDebugUrl");
+        sDebugGroupPrefix = sDebugUrl.substr(sDebugUrl.indexOf("/rdDownload") + 12);
+        sDebugGroupPrefix = sDebugGroupPrefix.replace("-rdDebug.htm", "");
+        var sUrl = sDebugUrl.substr(0, sDebugUrl.indexOf("/rdDownload")) + "./rdTemplate/rdDebugDownload.aspx?TracePrefix=" + sDebugGroupPrefix;
+        if (window.location.href.indexOf("rdDownload") != -1) {
+            //The URL is already in the rdDownload folder.
+            sUrl = "." + sUrl;  //Go up one folder.
+        }
+        window.location.href = sUrl;
+    }
+
+     /*
+      * This code serves multiple purposes
+      * 1) General Debug
+      * 2) General Debug in ETL
+      * 3) Exception Page for our exceptions
+      *
+      * In some cases ../rdTemplate is transformed into rdTemplate.  And often this breaks the URLs
+      */
+    function rdBuildProgressBars() {
+
+        //Set a total time attribute in each node.
+        var nEndTime = 0;
+        var nlTimes = document.querySelectorAll('table.DebugTable tr > td:last-child');
+        for (i = nlTimes.length - 1; i > -1; i--) {  //Read backwards.
+            var tdTime = nlTimes[i]
+            var sTime = tdTime.textContent;
+            var nTime = parseFloat(sTime);
+            if (!isNaN(nTime)) {
+                if (nTime == 0) {
+                    //At the beginning of a time group.  The next time is an end time.
+                    nEndTime = 0;
+                }
+                if (nEndTime == 0) {
+                    nEndTime = nTime;
+                }
+                //var nTotalPercent = Math.round((nTime / nEndTime) * 100)
+                tdTime.parentNode.setAttribute("EndTime", nEndTime);
+            }
+        }
+
+        var previousTimeUsage = 0;
+        var lastColumn = document.querySelectorAll('table.DebugTable tr > td:last-child');
+        for (var i = 0; i < lastColumn.length; i++) {
+            var tdNode = lastColumn[i];
+
+            // Iterate through each and modify CSS
+            var totalTime = parseFloat(tdNode.parentNode.getAttribute("EndTime"))
+            if (totalTime != 0) {
+
+                var timeText = tdNode.innerText;
+                var time = parseFloat(timeText);
+                if (!isNaN(time)) {
+
+                    var percent = Math.round((time / totalTime) * 100),
+                        previousPercent = Math.round((previousTimeUsage / totalTime) * 100),
+                        elapsedSincePrevious = percent - previousPercent;
+
+                    tdNode.className += " progress";
+                    var html = '<div class="previousElapsed" style="width:' + previousPercent + '%;">&nbsp;</div>'
+                        + '<div class="progressBar" style="width:' + elapsedSincePrevious + '%;">&nbsp;</div>'
+                        + '<div class="text"><span>' + timeText + '</span></div>';
+
+                    tdNode.innerHTML = html;
+
+                    // Update previous UsageTime
+                    previousTimeUsage = time;
+                }
+            } else {
+                previousTimeUsage = 0
+            }
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        rdBuildProgressBars();
+
+        if (window.location.protocol.indexOf("http") != 0) {
+            var anchors = document.getElementsByTagName("A");
+            for (var i = 0; i < anchors.length; i++) {
+                var a = anchors[i];
+
+                var url = a.href;
+
+                if (url.indexOf("rdDebugDownloadTrace") >= 0) {
+                    a.style.display = "none";
+                    continue;
+                }
+
+                if (url.indexOf("javascript:") == 0 || url.lastIndexOf(".xml") != url.length - 4)
+                    continue;
+
+                var idx = url.indexOf("/rdDebugData.htm?url=");
+                if (idx >= 0)
+                    url = url.substr(idx + 21);
+
+                idx = url.lastIndexOf("/rdDownload/");
+
+                if (idx >= 0)
+                    url = url.substr(idx + 12);
+
+                a.href = url;
+            }
+        }
+    });
+</script>
+   </head>
+   <body rdDebugUrl="rdDownload/ECC80516F37FCC983E8D0459EAD7FB6F-8f240aeb500a436cb1d0a4d0aea3b90e-rdDebug.htm">
+      <div><h3><span class="LogiDarkGreen">Logi</span> <span class="LogiPurple">Debugger Trace Report</span></h3></div>
+      <rdErrorMsgContent>
+         <rdErrorMessage />
+      </rdErrorMsgContent>
+
+      <rdDetailedReport>
+          <span id="DetailedReport" style="" >
+              <table border="0" class="BodyTable">
+                  <tr><td></td></tr>
+                  <tr>
+                      <td>
+                          <table class="DebugTable" border="0" cellspacing="0" style="table-layout:fixed;width:100%;white-space:nowrap;">
+                              <tr class="HeaderRow">
+                                  <th style="width:20%">Event</th>
+                                  <th style="width:20%;">Event Detail</th>
+                                  <th style="width:52%;">Value</th>
+                                  <th style="width:08%;text-align:center;">Time</th>
+                              </tr>
+                              <tr><td>Debug&#160;</td><td>Started&#160;</td><td>2020/06/12 3:57:35.8 PM&#160;</td><td style="text-align: right;">.000</td></tr>
+<tr><td>Server&#160;</td><td>&#160;</td><td>&#160;</td><td style="text-align: right;">.000</td></tr>
+<tr><td>&#160;</td><td>Product Edition&#160;</td><td>Logi Info&#160;</td><td style="text-align: right;">.000</td></tr>
+<tr><td>&#160;</td><td>Server Engine Version&#160;</td><td>12.7.154-SP3&#160;</td><td style="text-align: right;">.000</td></tr>
+<tr><td>&#160;</td><td>File Version Number&#160;</td><td>12.7.154.39&#160;</td><td style="text-align: right;">.000</td></tr>
+<tr><td>&#160;</td><td>Machine Name&#160;</td><td>IP-10-210-0-80.EC2.INTERNAL&#160;</td><td style="text-align: right;">.001</td></tr>
+<tr><td>&#160;</td><td>IP Addresses&#160;</td><td>127.0.0.1&#160;</td><td style="text-align: right;">.001</td></tr>
+<tr><td>Browser&#160;</td><td>User Agent&#160;</td><td>Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36&#160;</td><td style="text-align: right;">.001</td></tr>
+<tr><td>Request Tokens&#160;</td><td>&#160;</td><td>&#160;</td><td style="text-align: right;">.001</td></tr>
+<tr><td>&#160;</td><td>@Request.rdUsername~&#160;</td><td>Davolio&#160;</td><td style="text-align: right;">.002</td></tr>
+<tr><td>&#160;</td><td>@Request.rdFormLogon~&#160;</td><td>True&#160;</td><td style="text-align: right;">.002</td></tr>
+<tr><td>&#160;</td><td>@Request.Submit1~&#160;</td><td>Logon&#160;</td><td style="text-align: right;">.003</td></tr>
+<tr><td>Response Builder&#160;</td><td>Start&#160;</td><td>&#160;</td><td style="text-align: right;">.003</td></tr>
+<tr><td>Requested URL&#160;</td><td>&#160;</td><td>http://info.cs.logianalytics.com/ssrm/rdPage.aspx&#160;</td><td style="text-align: right;">.003</td></tr>
+<tr><td>Java Settings&#160;</td><td>&#160;</td><td>&#160;</td><td style="text-align: right;">.003</td></tr>
+<tr><td>&#160;</td><td>Java Version&#160;</td><td>1.8.0_252&#160;</td><td style="text-align: right;">.003</td></tr>
+<tr><td>&#160;</td><td>Java VM name&#160;</td><td>OpenJDK 64-Bit Server VM&#160;</td><td style="text-align: right;">.003</td></tr>
+<tr><td>&#160;</td><td>java.awt.headless&#160;</td><td>&#160;</td><td style="text-align: right;">.003</td></tr>
+<tr><td>&#160;</td><td>java.home&#160;</td><td>/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.252.b09-2.el7_8.x86_64/jre&#160;</td><td style="text-align: right;">.003</td></tr>
+<tr><td>&#160;</td><td>Free VM Memory&#160;</td><td>447,713,504&#160;</td><td style="text-align: right;">.003</td></tr>
+<tr><td>&#160;</td><td>Total VM Memory&#160;</td><td>613,416,960&#160;</td><td style="text-align: right;">.004</td></tr>
+<tr><td>&#160;</td><td>Max VM Memory&#160;</td><td>954,728,448&#160;</td><td style="text-align: right;">.004</td></tr>
+<tr><td>&#160;</td><td>Code Cache Memory&#160;</td><td>27,624,256&#160;</td><td style="text-align: right;">.004</td></tr>
+<tr><td>&#160;</td><td>Metaspace Memory&#160;</td><td>70,027,752&#160;</td><td style="text-align: right;">.004</td></tr>
+<tr><td>&#160;</td><td>Eden Space Memory&#160;</td><td>121,808,048&#160;</td><td style="text-align: right;">.004</td></tr>
+<tr><td>&#160;</td><td>Survivor Space Memory&#160;</td><td>1,075,216&#160;</td><td style="text-align: right;">.004</td></tr>
+<tr><td>&#160;</td><td>Old Generation Memory&#160;</td><td>42,820,192&#160;</td><td style="text-align: right;">.004</td></tr>
+<tr><td>Data Cache&#160;</td><td>Location&#160;</td><td>/home/centos/apache-tomcat-8.5.55/webapps/ssrm/rdDataCache&#160;</td><td style="text-align: right;">.011</td></tr>
+<tr><td>Get DataLayer.SQL&#160;</td><td>ID = &#160;</td><td>&#160;</td><td style="text-align: right;">.011</td></tr>
+<tr><td>&#160;</td><td>Connection ID&#160;</td><td>postgresql&#160;</td><td style="text-align: right;">.012</td></tr>
+<tr><td>&#160;</td><td>Connection Type&#160;</td><td>PostgreSQL&#160;</td><td style="text-align: right;">.012</td></tr>
+<tr><td>&#160;</td><td>Source&#160;</td><td>Select employees.first_name,<br/>  employees.last_name,<br/>  employees.region<br/>From employees<br/>Where employees.last_name = 'Davolio' AND employees.first_name = 'Nancy'&#160;</td><td style="text-align: right;">.014</td></tr>
+<tr><td>&#160;</td><td>Process SQL&#160;</td><td>Open connection&#160;</td><td style="text-align: right;">.014</td></tr>
+<tr><td>&#160;</td><td>Process SQL&#160;</td><td>Send SQL command to data source&#160;</td><td style="text-align: right;">.069</td></tr>
+<tr><td>&#160;</td><td>Process SQL&#160;</td><td>Received response&#160;</td><td style="text-align: right;">.071</td></tr>
+<tr><td>&#160;</td><td>Process SQL&#160;</td><td>Schema built&#160;</td><td style="text-align: right;">.076</td></tr>
+<tr><td>&#160;</td><td>Processing SQL&#160;</td><td>Requesting first row&#160;</td><td style="text-align: right;">.076</td></tr>
+<tr><td>&#160;</td><td>Processing SQL&#160;</td><td>Retrieved first row&#160;</td><td style="text-align: right;">.077</td></tr>
+<tr><td>&#160;</td><td>Process SQL&#160;</td><td>Connection closed&#160;</td><td style="text-align: right;">.077</td></tr>
+<tr><td>&#160;</td><td>Process SQL&#160;</td><td>Database server took 0.057 seconds to process the query&#160;</td><td style="text-align: right;">.077</td></tr>
+<tr><td>&#160;</td><td>Processed Row Count&#160;</td><td>1&#160;</td><td style="text-align: right;">.077</td></tr>
+<tr><td>&#160;</td><td>Processed Data&#160;</td><td><a href="../rdTemplate/rdDebugData.htm?url=../rdDownload/ECC80516F37FCC983E8D0459EAD7FB6F-8f240aeb500a436cb1d0a4d0aea3b90e-4e3e2941186e4ea4a5b2fd68994dfff4-rdDebug.xml">View Memory Stream Data (124 bytes)</a>&#160;</td><td style="text-align: right;">.077</td></tr>
+<tr><td>&#160;</td><td>Finalize DataLayers&#160;</td><td>&#160;</td><td style="text-align: right;">.078</td></tr>
+<tr><td>&#160;</td><td>Data Engine&#160;</td><td>Data processing completed.&#160;</td><td style="text-align: right;">.078</td></tr>
+<tr><td>Get DataLayer.SQL&#160;</td><td>ID = &#160;</td><td>&#160;</td><td style="text-align: right;">.079</td></tr>
+<tr><td>&#160;</td><td>Connection ID&#160;</td><td>postgresql&#160;</td><td style="text-align: right;">.080</td></tr>
+<tr><td>&#160;</td><td>Connection Type&#160;</td><td>PostgreSQL&#160;</td><td style="text-align: right;">.080</td></tr>
+<tr><td>&#160;</td><td>Source&#160;</td><td>Select employeeroles.roles,<br/>  employeeroles.last_name<br/>From employeeroles<br/>Where employeeroles.last_name = 'Davolio'&#160;</td><td style="text-align: right;">.081</td></tr>
+<tr><td>&#160;</td><td>Process SQL&#160;</td><td>Open connection&#160;</td><td style="text-align: right;">.081</td></tr>
+<tr><td>&#160;</td><td>Process SQL&#160;</td><td>Send SQL command to data source&#160;</td><td style="text-align: right;">.089</td></tr>
+<tr><td>&#160;</td><td>Process SQL&#160;</td><td>Received response&#160;</td><td style="text-align: right;">.090</td></tr>
+<tr><td>&#160;</td><td>Process SQL&#160;</td><td>Schema built&#160;</td><td style="text-align: right;">.094</td></tr>
+<tr><td>&#160;</td><td>Processing SQL&#160;</td><td>Requesting first row&#160;</td><td style="text-align: right;">.094</td></tr>
+<tr><td>&#160;</td><td>Processing SQL&#160;</td><td>Retrieved first row&#160;</td><td style="text-align: right;">.095</td></tr>
+<tr><td>&#160;</td><td>Process SQL&#160;</td><td>Connection closed&#160;</td><td style="text-align: right;">.095</td></tr>
+<tr><td>&#160;</td><td>Process SQL&#160;</td><td>Database server took 0.010 seconds to process the query&#160;</td><td style="text-align: right;">.095</td></tr>
+<tr><td>&#160;</td><td>Processed Row Count&#160;</td><td>2&#160;</td><td style="text-align: right;">.095</td></tr>
+<tr><td>&#160;</td><td>Processed Data&#160;</td><td><a href="../rdTemplate/rdDebugData.htm?url=../rdDownload/ECC80516F37FCC983E8D0459EAD7FB6F-8f240aeb500a436cb1d0a4d0aea3b90e-d62bd4a8609248608d812d62fb22de51-rdDebug.xml">View Memory Stream Data (191 bytes)</a>&#160;</td><td style="text-align: right;">.095</td></tr>
+<tr><td>&#160;</td><td>Finalize DataLayers&#160;</td><td>&#160;</td><td style="text-align: right;">.096</td></tr>
+<tr><td>&#160;</td><td>Data Engine&#160;</td><td>Data processing completed.&#160;</td><td style="text-align: right;">.096</td></tr>
+<tr><td>Application Security&#160;</td><td>Enabled&#160;</td><td>True&#160;</td><td style="text-align: right;">.097</td></tr>
+<tr><td>&#160;</td><td>Authenticated User&#160;</td><td>Davolio&#160;</td><td style="text-align: right;">.097</td></tr>
+<tr><td>&#160;</td><td>User Roles&#160;</td><td>InfoGoScheduleManager,Sales Representative&#160;</td><td style="text-align: right;">.097</td></tr>
+<tr><td>&#160;</td><td>User Rights&#160;</td><td>InfoGoScheduleManager,Sales Representative&#160;</td><td style="text-align: right;">.097</td></tr>
+<tr><td>Run StartupProcess&#160;</td><td>&#160;</td><td>&#160;</td><td style="text-align: right;">.098</td></tr>
+<tr><td>Process&#160;</td><td>Start&#160;</td><td>&#160;</td><td style="text-align: right;">.098</td></tr>
+<tr><td>Requested URL&#160;</td><td>&#160;</td><td>http://info.cs.logianalytics.com/ssrm/rdPage.aspx&#160;</td><td style="text-align: right;">.098</td></tr>
+<tr><td>Check Security&#160;</td><td>&#160;</td><td>&#160;</td><td style="text-align: right;">.098</td></tr>
+<tr><td>Application Security&#160;</td><td>Enabled&#160;</td><td>True&#160;</td><td style="text-align: right;">.099</td></tr>
+<tr><td>&#160;</td><td>Authenticated User&#160;</td><td>Davolio&#160;</td><td style="text-align: right;">.099</td></tr>
+<tr><td>&#160;</td><td>User Roles&#160;</td><td>InfoGoScheduleManager,Sales Representative&#160;</td><td style="text-align: right;">.099</td></tr>
+<tr><td>&#160;</td><td>User Rights&#160;</td><td>InfoGoScheduleManager,Sales Representative&#160;</td><td style="text-align: right;">.099</td></tr>
+<tr><td>&#160;</td><td>rdProcess&#160;</td><td>InfoGo.goManageReports&#160;</td><td style="text-align: right;">.100</td></tr>
+<tr><td>&#160;</td><td>rdTask&#160;</td><td>RedirectToDefault&#160;</td><td style="text-align: right;">.100</td></tr>
+<tr><td>Get LocalData&#160;</td><td>Start&#160;</td><td>localGetLastCustomLinkBookmark&#160;</td><td style="text-align: right;">.103</td></tr>
+<tr><td>&#160;</td><td>Evaluate Condition&#160;</td><td>'' &lt;&gt; '' &amp;&amp; '' &lt;&gt; ''&#160;</td><td style="text-align: right;">.103</td></tr>
+<tr><td>&#160;</td><td>&#160;</td><td>Condition Source: LocalData (ID = localGetLastCustomLinkBookmark)&#160;</td><td style="text-align: right;">.104</td></tr>
+<tr><td>&#160;</td><td>&#160;</td><td>Evaluated False, skipping DataLayer.&#160;</td><td style="text-align: right;">.110</td></tr>
+<tr><td>&#160;</td><td>Evaluate Condition&#160;</td><td>'' &lt;&gt; '' &amp;&amp; '' &lt;&gt; ''&#160;</td><td style="text-align: right;">.111</td></tr>
+<tr><td>&#160;</td><td>&#160;</td><td>Condition Source: LocalData (ID = localGetLastCustomLinkBookmark)&#160;</td><td style="text-align: right;">.111</td></tr>
+<tr><td>&#160;</td><td>&#160;</td><td>Evaluated False, skipping DataLayer.&#160;</td><td style="text-align: right;">.114</td></tr>
+<tr><td>&#160;</td><td>Finalize DataLayers&#160;</td><td>&#160;</td><td style="text-align: right;">.114</td></tr>
+<tr><td>&#160;</td><td>Data Engine&#160;</td><td>Data processing completed.&#160;</td><td style="text-align: right;">.114</td></tr>
+<tr><td>Get LocalData&#160;</td><td>Finish&#160;</td><td>&#160;</td><td style="text-align: right;">.114</td></tr>
+<tr><td style="text-align: center; border-top: 2px solid black; background-color: #eaeff8; font-weight: bold; border-bottom: solid 1px #3f60af" colspan=4>Start Task RedirectToDefault&#160;</td></tr>
+<tr><td>Task&#160;</td><td>Start&#160;</td><td>&#160;</td><td style="text-align: right;">.115</td></tr>
+<tr><td>&#160;</td><td>ID&#160;</td><td>RedirectToDefault&#160;</td><td style="text-align: right;">.115</td></tr>
+<tr><td style="text-align: center; border-top: 2px solid black; background-color: #eaeff8; font-weight: bold; border-bottom: solid 1px #3f60af" colspan=4>Start Procedure - ID: IfNotStudioScope&#160;</td></tr>
+<tr><td>Start Procedure&#160;</td><td>Type&#160;</td><td>If&#160;</td><td style="text-align: right;">.121</td></tr>
+<tr><td>&#160;</td><td>Resolve token variables.&#160;</td><td>&#160;</td><td style="text-align: right;">.121</td></tr>
+<tr><td>&#160;</td><td>Resolved Procedure Element&#160;</td><td><a href="../rdDownload/ECC80516F37FCC983E8D0459EAD7FB6F-8f240aeb500a436cb1d0a4d0aea3b90e-1e6cc969a1f049ad85d6cee18288f243-rdDebug.xml">View</a>&#160;</td><td style="text-align: right;">.122</td></tr>
+<tr><td>&#160;</td><td>Expression&#160;</td><td>'' &lt;&gt; 'True' &amp;&amp; '' &lt;&gt; 'True' &amp;&amp; '' &lt;&gt; 'rdTemplate/rdDiagnostic'&#160;</td><td style="text-align: right;">.122</td></tr>
+<tr><td>&#160;</td><td>Evaluation Result&#160;</td><td>True&#160;</td><td style="text-align: right;">.127</td></tr>
+<tr><td style="text-align: center; border-top: 2px solid black; background-color: #eaeff8; font-weight: bold; border-bottom: solid 1px #3f60af" colspan=4>Start Procedure - ID: sessionGoDefaultBookmarkID&#160;</td></tr>
+<tr><td>Start Procedure&#160;</td><td>Type&#160;</td><td>SetSessionVars&#160;</td><td style="text-align: right;">.127</td></tr>
+<tr><td>&#160;</td><td>Resolve token variables.&#160;</td><td>&#160;</td><td style="text-align: right;">.127</td></tr>
+<tr><td>&#160;</td><td>Resolved Procedure Element&#160;</td><td><a href="../rdDownload/ECC80516F37FCC983E8D0459EAD7FB6F-8f240aeb500a436cb1d0a4d0aea3b90e-2859f479cd1240cc98e851d38f4ffe09-rdDebug.xml">View</a>&#160;</td><td style="text-align: right;">.128</td></tr>
+<tr><td>&#160;</td><td>goDefaultBookmarkID&#160;</td><td>&#160;</td><td style="text-align: right;">.131</td></tr>
+<tr><td>Procedure Return Values&#160;</td><td>&#160;</td><td>&#160;</td><td style="text-align: right;">.132</td></tr>
+<tr><td>&#160;</td><td>Status&#160;</td><td>Finish&#160;</td><td style="text-align: right;">.132</td></tr>
+<tr><td style="text-align: center; border-top: 2px solid black; background-color: #eaeff8; font-weight: bold; border-bottom: solid 1px #3f60af" colspan=4>Start Procedure - ID: sessionOriginalDefaultReport&#160;</td></tr>
+<tr><td>Start Procedure&#160;</td><td>Type&#160;</td><td>SetSessionVars&#160;</td><td style="text-align: right;">.132</td></tr>
+<tr><td>&#160;</td><td>Resolve token variables.&#160;</td><td>&#160;</td><td style="text-align: right;">.132</td></tr>
+<tr><td>&#160;</td><td>Resolved Procedure Element&#160;</td><td><a href="../rdDownload/ECC80516F37FCC983E8D0459EAD7FB6F-8f240aeb500a436cb1d0a4d0aea3b90e-bac4f321ef5b4aa3866c7ea59a0bcecc-rdDebug.xml">View</a>&#160;</td><td style="text-align: right;">.132</td></tr>
+<tr><td>&#160;</td><td>defaultReport&#160;</td><td>&#160;</td><td style="text-align: right;">.135</td></tr>
+<tr><td>Procedure Return Values&#160;</td><td>&#160;</td><td>&#160;</td><td style="text-align: right;">.135</td></tr>
+<tr><td>&#160;</td><td>Status&#160;</td><td>Finish&#160;</td><td style="text-align: right;">.136</td></tr>
+<tr><td style="text-align: center; border-top: 2px solid black; background-color: #eaeff8; font-weight: bold; border-bottom: solid 1px #3f60af" colspan=4>Start Procedure - ID: PlgGetDefaultReportFromSettings&#160;</td></tr>
+<tr><td>Start Procedure&#160;</td><td>Type&#160;</td><td>PluginCall&#160;</td><td style="text-align: right;">.136</td></tr>
+<tr><td>&#160;</td><td>Resolve token variables.&#160;</td><td>&#160;</td><td style="text-align: right;">.136</td></tr>
+<tr><td>&#160;</td><td>Resolved Procedure Element&#160;</td><td><a href="../rdDownload/ECC80516F37FCC983E8D0459EAD7FB6F-8f240aeb500a436cb1d0a4d0aea3b90e-6807ff1840884f10ad30180709502249-rdDebug.xml">View</a>&#160;</td><td style="text-align: right;">.136</td></tr>
+<tr><td>Call Procedure Plugin&#160;</td><td>ID&#160;</td><td>PlgGetDefaultReportFromSettings&#160;</td><td style="text-align: right;">.137</td></tr>
+<tr><td>&#160;</td><td>Loaded Plugin Assembly&#160;</td><td>/home/centos/apache-tomcat-8.5.55/webapps/ssrm/WEB-INF/lib/InfoGoReportManagementPlugin.jar&#160;</td><td style="text-align: right;">.139</td></tr>
+<tr><td>&#160;</td><td>Created Plugin Instance&#160;</td><td>&#160;</td><td style="text-align: right;">.139</td></tr>
+<tr><td>&#160;</td><td>Loaded Plugin Type&#160;</td><td>InfoGoReportManagementPlugin.InfoGoReportManagementPlugin&#160;</td><td style="text-align: right;">.140</td></tr>
+<tr><td>&#160;</td><td>Loaded Plugin Method&#160;</td><td>getDefaultReportFromSettings&#160;</td><td style="text-align: right;">.140</td></tr>
+<tr><td>Open Settings File&#160;</td><td>&#160;</td><td>&#160;</td><td style="text-align: right;">.140</td></tr>
+<tr><td>set default report: InfoGo.goHome&#160;</td><td>&#160;</td><td>&#160;</td><td style="text-align: right;">.140</td></tr>
+<tr><td>&#160;</td><td>Called Plugin&#160;</td><td>&#160;</td><td style="text-align: right;">.141</td></tr>
+<tr><td>Procedure Return Values&#160;</td><td>&#160;</td><td>&#160;</td><td style="text-align: right;">.141</td></tr>
+<tr><td>&#160;</td><td>Status&#160;</td><td>Finish&#160;</td><td style="text-align: right;">.141</td></tr>
+<tr><td style="text-align: center; border-top: 2px solid black; background-color: #eaeff8; font-weight: bold; border-bottom: solid 1px #3f60af" colspan=4>Start Procedure - ID: IfEmptyConstant&#160;</td></tr>
+<tr><td>Start Procedure&#160;</td><td>Type&#160;</td><td>If&#160;</td><td style="text-align: right;">.141</td></tr>
+<tr><td>&#160;</td><td>Resolve token variables.&#160;</td><td>&#160;</td><td style="text-align: right;">.141</td></tr>
+<tr><td>&#160;</td><td>Resolved Procedure Element&#160;</td><td><a href="../rdDownload/ECC80516F37FCC983E8D0459EAD7FB6F-8f240aeb500a436cb1d0a4d0aea3b90e-077db9e08ad547bc901fb1911df27a8d-rdDebug.xml">View</a>&#160;</td><td style="text-align: right;">.142</td></tr>
+<tr><td>&#160;</td><td>Expression&#160;</td><td>'' == ''  &amp;&amp; '' == '' &amp;&amp; '' == '' &amp;&amp; '' == ''&#160;</td><td style="text-align: right;">.145</td></tr>
+<tr><td>&#160;</td><td>Evaluation Result&#160;</td><td>True&#160;</td><td style="text-align: right;">.145</td></tr>
+<tr><td>Procedure Return Values&#160;</td><td>&#160;</td><td>&#160;</td><td style="text-align: right;">.146</td></tr>
+<tr><td>&#160;</td><td>@Procedure.IfEmptyConstant.rdReturnValue~&#160;</td><td>True&#160;</td><td style="text-align: right;">.146</td></tr>
+<tr><td>&#160;</td><td>Status&#160;</td><td>Finish&#160;</td><td style="text-align: right;">.146</td></tr>
+<tr><td style="text-align: center; border-top: 2px solid black; background-color: #eaeff8; font-weight: bold; border-bottom: solid 1px #3f60af" colspan=4>Start Procedure - ID: plgInjectGlobalMenu&#160;</td></tr>
+<tr><td>Start Procedure&#160;</td><td>Type&#160;</td><td>PluginCall&#160;</td><td style="text-align: right;">.146</td></tr>
+<tr><td>&#160;</td><td>Resolve token variables.&#160;</td><td>&#160;</td><td style="text-align: right;">.146</td></tr>
+<tr><td>&#160;</td><td>Resolved Procedure Element&#160;</td><td><a href="../rdDownload/ECC80516F37FCC983E8D0459EAD7FB6F-8f240aeb500a436cb1d0a4d0aea3b90e-6e2a8091c713455ba0ab9caaf842a0f2-rdDebug.xml">View</a>&#160;</td><td style="text-align: right;">.146</td></tr>
+<tr><td>Call Procedure Plugin&#160;</td><td>ID&#160;</td><td>plgInjectGlobalMenu&#160;</td><td style="text-align: right;">.147</td></tr>
+<tr><td>&#160;</td><td>Loaded Plugin Assembly&#160;</td><td>/home/centos/apache-tomcat-8.5.55/webapps/ssrm/WEB-INF/lib/InfoGoReportManagementPlugin.jar&#160;</td><td style="text-align: right;">.149</td></tr>
+<tr><td>&#160;</td><td>Created Plugin Instance&#160;</td><td>&#160;</td><td style="text-align: right;">.149</td></tr>
+<tr><td>&#160;</td><td>Loaded Plugin Type&#160;</td><td>InfoGoReportManagementPlugin.InfoGoReportManagementPlugin&#160;</td><td style="text-align: right;">.149</td></tr>
+<tr><td>&#160;</td><td>Loaded Plugin Method&#160;</td><td>InjectGlobalMenu&#160;</td><td style="text-align: right;">.149</td></tr>
+<tr><td>Server object roles&#160;</td><td>InfoGoScheduleManager,Sales Representative&#160;</td><td>&#160;</td><td style="text-align: right;">.206</td></tr>
+<tr><td>&#160;</td><td>Called Plugin&#160;</td><td>&#160;</td><td style="text-align: right;">.247</td></tr>
+<tr><td>Procedure Return Values&#160;</td><td>&#160;</td><td>&#160;</td><td style="text-align: right;">.247</td></tr>
+<tr><td>&#160;</td><td>Status&#160;</td><td>Finish&#160;</td><td style="text-align: right;">.247</td></tr>
+<tr><td style="text-align: center; border-top: 2px solid black; background-color: #eaeff8; font-weight: bold; border-bottom: solid 1px #3f60af" colspan=4>Start Procedure - ID: ifBookmarkCollectionNotFound&#160;</td></tr>
+<tr><td>Start Procedure&#160;</td><td>Type&#160;</td><td>If&#160;</td><td style="text-align: right;">.248</td></tr>
+<tr><td>&#160;</td><td>Resolve token variables.&#160;</td><td>&#160;</td><td style="text-align: right;">.248</td></tr>
+<tr><td>&#160;</td><td>Resolved Procedure Element&#160;</td><td><a href="../rdDownload/ECC80516F37FCC983E8D0459EAD7FB6F-8f240aeb500a436cb1d0a4d0aea3b90e-6bfd21beb5d94a35bf63bed2fe4f222f-rdDebug.xml">View</a>&#160;</td><td style="text-align: right;">.248</td></tr>
+<tr><td>&#160;</td><td>Expression&#160;</td><td>'True' == 'False' || 'False' == 'False' || 'False' == 'False'&#160;</td><td style="text-align: right;">.249</td></tr>
+<tr><td>&#160;</td><td>Evaluation Result&#160;</td><td>True&#160;</td><td style="text-align: right;">.250</td></tr>
+<tr><td>Procedure Return Values&#160;</td><td>&#160;</td><td>&#160;</td><td style="text-align: right;">.250</td></tr>
+<tr><td>&#160;</td><td>@Procedure.ifBookmarkCollectionNotFound.rdReturnValue~&#160;</td><td>True&#160;</td><td style="text-align: right;">.250</td></tr>
+<tr><td>&#160;</td><td>Status&#160;</td><td>Finish&#160;</td><td style="text-align: right;">.250</td></tr>
+<tr><td>Procedure Return Values&#160;</td><td>&#160;</td><td>&#160;</td><td style="text-align: right;">.250</td></tr>
+<tr><td>&#160;</td><td>@Procedure.IfNotStudioScope.rdReturnValue~&#160;</td><td>True&#160;</td><td style="text-align: right;">.250</td></tr>
+<tr><td>&#160;</td><td>Status&#160;</td><td>Finish&#160;</td><td style="text-align: right;">.250</td></tr>
+<tr><td style="text-align: center; border-top: 2px solid black; background-color: #eaeff8; font-weight: bold; border-bottom: solid 1px #3f60af" colspan=4>Completed Task RedirectToDefault&#160;</td></tr>
+<tr><td>***WARNING***&#160;</td><td>Tokens without values.&#160;</td><td><a href="javascript:rdDebugExpand('526e0738-39a5-447b-a4b3-a607c91ee108')">View tokens list</a><span style="display:none" id="526e0738-39a5-447b-a4b3-a607c91ee108">@Request.rdCustomLinkName~<br/>@Request.rdCustomLinkURL~<br/>@Request.rdForWizard~<br/>@Request.rdStudio~<br/>@Request.rdReport~<br/>@Constant.goDefaultBookmarkID~<br/>@Constant.goDefaultBookmarkCollection~<br/>@Constant.goDefaultBookmarkUserName~<br/>@Constant.goDefaultBookmarkReportName~<br/>@Session.goBookmarkCollection~<br/>@Constant.goGlobalMenuCaption~</span>&#160;</td><td style="text-align: right;">.251</td></tr>
+<tr><td>Run StartupProcess&#160;</td><td>&#160;</td><td>&#160;</td><td style="text-align: right;">.251</td></tr>
+<tr><td>Process&#160;</td><td>Start&#160;</td><td>&#160;</td><td style="text-align: right;">.251</td></tr>
+<tr><td>Requested URL&#160;</td><td>&#160;</td><td>http://info.cs.logianalytics.com/ssrm/rdPage.aspx&#160;</td><td style="text-align: right;">.251</td></tr>
+<tr><td>Check Security&#160;</td><td>&#160;</td><td>&#160;</td><td style="text-align: right;">.252</td></tr>
+<tr><td>Application Security&#160;</td><td>Enabled&#160;</td><td>True&#160;</td><td style="text-align: right;">.252</td></tr>
+<tr><td>&#160;</td><td>Authenticated User&#160;</td><td>Davolio&#160;</td><td style="text-align: right;">.252</td></tr>
+<tr><td>&#160;</td><td>User Roles&#160;</td><td>InfoGoScheduleManager,Sales Representative&#160;</td><td style="text-align: right;">.252</td></tr>
+<tr><td>&#160;</td><td>User Rights&#160;</td><td>InfoGoScheduleManager,Sales Representative&#160;</td><td style="text-align: right;">.252</td></tr>
+<tr><td>&#160;</td><td>rdProcess&#160;</td><td>InfoGo.goInitApplication&#160;</td><td style="text-align: right;">.253</td></tr>
+<tr><td>&#160;</td><td>rdTask&#160;</td><td>tskInitApplication&#160;</td><td style="text-align: right;">.253</td></tr>
+<tr><td style="text-align: center; border-top: 2px solid black; background-color: #eaeff8; font-weight: bold; border-bottom: solid 1px #3f60af" colspan=4>Start Task tskInitApplication&#160;</td></tr>
+<tr><td>Task&#160;</td><td>Start&#160;</td><td>&#160;</td><td style="text-align: right;">.255</td></tr>
+<tr><td>&#160;</td><td>ID&#160;</td><td>tskInitApplication&#160;</td><td style="text-align: right;">.255</td></tr>
+<tr><td style="text-align: center; border-top: 2px solid black; background-color: #eaeff8; font-weight: bold; border-bottom: solid 1px #3f60af" colspan=4>Start Procedure - ID: procGetInfoGoVersionNumber&#160;</td></tr>
+<tr><td>Start Procedure&#160;</td><td>Type&#160;</td><td>RunDataLayerRows&#160;</td><td style="text-align: right;">.259</td></tr>
+<tr><td>&#160;</td><td>Resolve token variables.&#160;</td><td>&#160;</td><td style="text-align: right;">.259</td></tr>
+<tr><td>&#160;</td><td>Resolved Procedure Element&#160;</td><td><a href="../rdDownload/ECC80516F37FCC983E8D0459EAD7FB6F-8f240aeb500a436cb1d0a4d0aea3b90e-668fde3552ab4a00bed5e17bebe6f1ed-rdDebug.xml">View</a>&#160;</td><td style="text-align: right;">.259</td></tr>
+<tr><td>Get DataLayer.XMLFile&#160;</td><td>ID = dlGetVersion&#160;</td><td>&#160;</td><td style="text-align: right;">.260</td></tr>
+<tr><td>&#160;</td><td>Select Nodes with XPath&#160;</td><td>Report&#160;</td><td style="text-align: right;">.262</td></tr>
+<tr><td>&#160;</td><td>Number of matching nodes&#160;</td><td>1&#160;</td><td style="text-align: right;">.262</td></tr>
+<tr><td>&#160;</td><td>XML Extract Nodes&#160;</td><td><a href="../rdDownload/ECC80516F37FCC983E8D0459EAD7FB6F-8f240aeb500a436cb1d0a4d0aea3b90e-97e48d19bb6e4fa99e2cfe7faa6d1b92-rdDebug.xml">View FileStream Data (26,929 bytes)</a>&#160;</td><td style="text-align: right;">.263</td></tr>
+<tr><td>&#160;</td><td>Processed Row Count&#160;</td><td>1&#160;</td><td style="text-align: right;">.273</td></tr>
+<tr><td>&#160;</td><td>Processed Data&#160;</td><td><a href="../rdTemplate/rdDebugData.htm?url=../rdDownload/ECC80516F37FCC983E8D0459EAD7FB6F-8f240aeb500a436cb1d0a4d0aea3b90e-e998486de16e44378e8e3bad2dd022bc-rdDebug.xml">View File Stream Data (137 bytes)</a>&#160;</td><td style="text-align: right;">.273</td></tr>
+<tr><td>&#160;</td><td>Finalize DataLayers&#160;</td><td>&#160;</td><td style="text-align: right;">.274</td></tr>
+<tr><td>&#160;</td><td>Data Engine&#160;</td><td>Data processing completed.&#160;</td><td style="text-align: right;">.274</td></tr>
+<tr><td style="text-align: center; border-top: 2px solid black; background-color: #eaeff8; font-weight: bold; border-bottom: solid 1px #3f60af" colspan=4>Start Procedure - ID: setInfoGoVersionNumber&#160;</td></tr>
+<tr><td>Start Procedure&#160;</td><td>Type&#160;</td><td>SetSessionVars&#160;</td><td style="text-align: right;">.275</td></tr>
+<tr><td>&#160;</td><td>Resolve token variables.&#160;</td><td>&#160;</td><td style="text-align: right;">.275</td></tr>
+<tr><td>&#160;</td><td>Resolved Procedure Element&#160;</td><td><a href="../rdDownload/ECC80516F37FCC983E8D0459EAD7FB6F-8f240aeb500a436cb1d0a4d0aea3b90e-5d11e8fa5a784974ba5a8f4213ed53d6-rdDebug.xml">View</a>&#160;</td><td style="text-align: right;">.275</td></tr>
+<tr><td>&#160;</td><td>goPredictGoVersion&#160;</td><td>12.7.348&#160;</td><td style="text-align: right;">.279</td></tr>
+<tr><td>Procedure Return Values&#160;</td><td>&#160;</td><td>&#160;</td><td style="text-align: right;">.279</td></tr>
+<tr><td>&#160;</td><td>Status&#160;</td><td>Finish&#160;</td><td style="text-align: right;">.279</td></tr>
+<tr><td>Procedure Return Values&#160;</td><td>&#160;</td><td>&#160;</td><td style="text-align: right;">.279</td></tr>
+<tr><td>&#160;</td><td>Status&#160;</td><td>Finish&#160;</td><td style="text-align: right;">.279</td></tr>
+<tr><td style="text-align: center; border-top: 2px solid black; background-color: #eaeff8; font-weight: bold; border-bottom: solid 1px #3f60af" colspan=4>Completed Task tskInitApplication&#160;</td></tr>
+<tr><td>Hybrid Data Engine&#160;</td><td>MemoryStreamLimit&#160;</td><td>10 MB&#160;</td><td style="text-align: right;">.280</td></tr>
+<tr><td>Determine Definition&#160;</td><td>&#160;</td><td>&#160;</td><td style="text-align: right;">.281</td></tr>
+<tr><td>&#160;</td><td>Requested Definition&#160;</td><td>InfoGo.goHome&#160;</td><td style="text-align: right;">.281</td></tr>
+<tr><td>&#160;</td><td>Read Definition from Cache&#160;</td><td>False&#160;</td><td style="text-align: right;">.289</td></tr>
+<tr><td>Call Plugin&#160;</td><td>ID&#160;</td><td>plgInjectGlobalMenu&#160;</td><td style="text-align: right;">.306</td></tr>
+<tr><td>&#160;</td><td>Loaded Plugin Assembly&#160;</td><td>/home/centos/apache-tomcat-8.5.55/webapps/ssrm/WEB-INF/lib/InfoGoReportManagementPlugin.jar&#160;</td><td style="text-align: right;">.307</td></tr>
+<tr><td>&#160;</td><td>Created Plugin Instance&#160;</td><td>&#160;</td><td style="text-align: right;">.307</td></tr>
+<tr><td>&#160;</td><td>Loaded Plugin Type&#160;</td><td>InfoGoReportManagementPlugin.InfoGoReportManagementPlugin&#160;</td><td style="text-align: right;">.307</td></tr>
+<tr><td>&#160;</td><td>Loaded Plugin Method&#160;</td><td>InjectGlobalMenu&#160;</td><td style="text-align: right;">.307</td></tr>
+<tr><td>Server object roles&#160;</td><td>InfoGoScheduleManager,Sales Representative&#160;</td><td>&#160;</td><td style="text-align: right;">.350</td></tr>
+<tr><td>&#160;</td><td>Called Plugin&#160;</td><td>&#160;</td><td style="text-align: right;">.389</td></tr>
+<tr><td>&#160;</td><td>Wrapped with MasterReport&#160;</td><td><a href="../rdDownload/ECC80516F37FCC983E8D0459EAD7FB6F-8f240aeb500a436cb1d0a4d0aea3b90e-f9d8693dd4cf4677bbda7bbfb6bdfb7d-rdDebug.xml">View Definition</a>&#160;</td><td style="text-align: right;">.403</td></tr>
+<tr><td>Get LocalData&#160;</td><td>Start&#160;</td><td>localGetBookmarkCnt&#160;</td><td style="text-align: right;">.407</td></tr>
+<tr><td>Get DataLayer.DefinitionList&#160;</td><td>ID = rdDataLayer_rdReportCenterID&#160;</td><td>&#160;</td><td style="text-align: right;">.407</td></tr>
+<tr><td>&#160;</td><td>Compute Data Operation Plan&#160;</td><td><a href="javascript:rdDebugExpand('1ceb40d1-349d-44e1-a25e-bafd320c8e4a')">View Data Operation Plan</a><span style="display:none" id="1ceb40d1-349d-44e1-a25e-bafd320c8e4a">Data Operation Group 1:<br/> - Retrieve data<br/><br/>Data Operation Group 2:<br/> - ReportCenterFilter ID="rdReportCenterFilter"<br/><br/>Data Operation Group 3:<br/> - CompareFilter ID="compareIsBookmark"<br/><br/>Data Operation Group 4:<br/> - DataLayerLink ID="linkDlBookmark"<br/><br/>Data Operation Group 5:<br/> - AggregateColumn ID="cntUserBookmarks"<br/><br/>Data Operation Group 6:<br/> - Save aggregation results<br/></span>&#160;</td><td style="text-align: right;">.408</td></tr>
+<tr><td>&#160;</td><td>Data Operation Group 1 of 6&#160;</td><td><a href="javascript:rdDebugExpand('a1c41a72-2196-4b2c-b50b-80a1cfc87f0d')">View Group Details (1 Items)</a><span style="display:none" id="a1c41a72-2196-4b2c-b50b-80a1cfc87f0d">Details for Data Operation Group 1 of 6<br/><br/>Load data into engine<br/> - Running as a separate Data Operation Group since the next step requires access to the full data file.<br/><br/></span>&#160;</td><td style="text-align: right;">.408</td></tr>
+<tr><td>&#160;</td><td>Definition List Folder&#160;</td><td>_Reports&#160;</td><td style="text-align: right;">.408</td></tr>
+<tr><td>&#160;</td><td>Processed Row Count&#160;</td><td>16&#160;</td><td style="text-align: right;">.436</td></tr>
+<tr><td>&#160;</td><td>Processed Data&#160;</td><td><a href="../rdTemplate/rdDebugData.htm?url=../rdDownload/ECC80516F37FCC983E8D0459EAD7FB6F-8f240aeb500a436cb1d0a4d0aea3b90e-ae9c7292594f4220935c44bbf1748110-rdDebug.xml">View Memory Stream Data (5,033 bytes)</a>&#160;</td><td style="text-align: right;">.437</td></tr>
+<tr><td>&#160;</td><td>Data Operation Group 2 of 6&#160;</td><td><a href="javascript:rdDebugExpand('dd79deab-1ff1-4cd3-8670-3d2411b9dd69')">View Group Details (1 Items)</a><span style="display:none" id="dd79deab-1ff1-4cd3-8670-3d2411b9dd69">Details for Data Operation Group 2 of 6<br/><br/>Run ReportCenterFilter(ID = rdReportCenterFilter)<br/> - AllowScheduling: True<br/> - ReportCenterAllowSchedule: True<br/><br/></span>&#160;</td><td style="text-align: right;">.437</td></tr>
+<tr><td>&#160;</td><td>Rows Affected&#160;</td><td>9 rows in output.&#160;</td><td style="text-align: right;">.506</td></tr>
+<tr><td>&#160;</td><td>Processed Data&#160;</td><td><a href="../rdTemplate/rdDebugData.htm?url=../rdDownload/ECC80516F37FCC983E8D0459EAD7FB6F-8f240aeb500a436cb1d0a4d0aea3b90e-b9dbe8f9d5224fe0a79892f4a4889d37-rdDebug.xml">View Memory Stream Data (3,462 bytes)</a>&#160;</td><td style="text-align: right;">.506</td></tr>
+<tr><td>&#160;</td><td>Data Operation Group 3 of 6&#160;</td><td><a href="javascript:rdDebugExpand('869134bf-6165-4a28-ae4f-024535069327')">View Group Details (1 Items)</a><span style="display:none" id="869134bf-6165-4a28-ae4f-024535069327">Details for Data Operation Group 3 of 6<br/><br/>Run CompareFilter (ID = compareIsBookmark)<br/> - Filter Criteria: BookmarkID != ''<br/><br/></span>&#160;</td><td style="text-align: right;">.507</td></tr>
+<tr><td>&#160;</td><td>Processed Row Count&#160;</td><td>3&#160;</td><td style="text-align: right;">.508</td></tr>
+<tr><td>&#160;</td><td>Processed Data&#160;</td><td><a href="../rdTemplate/rdDebugData.htm?url=../rdDownload/ECC80516F37FCC983E8D0459EAD7FB6F-8f240aeb500a436cb1d0a4d0aea3b90e-26620145a62b4716a92da573384b1f87-rdDebug.xml">View File Stream Data (1,939 bytes)</a>&#160;</td><td style="text-align: right;">.508</td></tr>
+<tr><td>&#160;</td><td>Data Operation Group 4 of 6&#160;</td><td><a href="javascript:rdDebugExpand('a24510d3-40da-46b2-ab08-eabaac01c5c7')">View Group Details (1 Items)</a><span style="display:none" id="a24510d3-40da-46b2-ab08-eabaac01c5c7">Details for Data Operation Group 4 of 6<br/><br/>Run DataLayerLink(ID = linkDlBookmark)<br/><br/></span>&#160;</td><td style="text-align: right;">.508</td></tr>
+<tr><td>&#160;</td><td>Processed Data&#160;</td><td><a href="../rdTemplate/rdDebugData.htm?url=../rdDownload/ECC80516F37FCC983E8D0459EAD7FB6F-8f240aeb500a436cb1d0a4d0aea3b90e-8c9a9c90d9ce48379282f93e199d771f-rdDebug.xml">View File Stream Data (1,939 bytes)</a>&#160;</td><td style="text-align: right;">.509</td></tr>
+<tr><td>&#160;</td><td>Data Operation Group 5 of 6&#160;</td><td><a href="javascript:rdDebugExpand('bb7802c3-a8b5-4173-b9fe-6bc2fdf724ae')">View Group Details (1 Items)</a><span style="display:none" id="bb7802c3-a8b5-4173-b9fe-6bc2fdf724ae">Details for Data Operation Group 5 of 6<br/><br/>Run AggregateColumn(ID = cntUserBookmarks)<br/> - AggregateColumn: BookmarkID<br/> - AggregateFunction: Count<br/><br/></span>&#160;</td><td style="text-align: right;">.509</td></tr>
+<tr><td>&#160;</td><td>Processed Row Count&#160;</td><td>3&#160;</td><td style="text-align: right;">.510</td></tr>
+<tr><td>&#160;</td><td>Processed Data&#160;</td><td><a href="../rdTemplate/rdDebugData.htm?url=../rdDownload/ECC80516F37FCC983E8D0459EAD7FB6F-8f240aeb500a436cb1d0a4d0aea3b90e-562d84b40b7e4050aaaee44261b6fad0-rdDebug.xml">View File Stream Data (1,939 bytes)</a>&#160;</td><td style="text-align: right;">.510</td></tr>
+<tr><td>&#160;</td><td>Data Operation Group 6 of 6&#160;</td><td><a href="javascript:rdDebugExpand('85344fbb-02a9-47da-bc9d-61639e8c03c2')">View Group Details (1 Items)</a><span style="display:none" id="85344fbb-02a9-47da-bc9d-61639e8c03c2">Details for Data Operation Group 6 of 6<br/><br/>Save Aggregation Results<br/> - The previous Data Operation Group generated results that must be applied to the data.<br/><br/></span>&#160;</td><td style="text-align: right;">.511</td></tr>
+<tr><td>&#160;</td><td>Processed Row Count&#160;</td><td>3&#160;</td><td style="text-align: right;">.512</td></tr>
+<tr><td>&#160;</td><td>Processed Data&#160;</td><td><a href="../rdTemplate/rdDebugData.htm?url=../rdDownload/ECC80516F37FCC983E8D0459EAD7FB6F-8f240aeb500a436cb1d0a4d0aea3b90e-2f032b774a6844d683feeb8e150b4208-rdDebug.xml">View File Stream Data (2,002 bytes)</a>&#160;</td><td style="text-align: right;">.512</td></tr>
+<tr><td>&#160;</td><td>Finalize DataLayers&#160;</td><td>&#160;</td><td style="text-align: right;">.512</td></tr>
+<tr><td>&#160;</td><td>Merge Data&#160;</td><td>Start&#160;</td><td style="text-align: right;">.513</td></tr>
+<tr><td>&#160;</td><td>Merge Data&#160;</td><td>Finish&#160;</td><td style="text-align: right;">.513</td></tr>
+<tr><td>&#160;</td><td>Data Engine&#160;</td><td>Data processing completed.&#160;</td><td style="text-align: right;">.513</td></tr>
+<tr><td>&#160;</td><td>@Local.localGetBookmarkCnt.rdMenu~&#160;</td><td>InfoGo.goAnalysisGrid&#160;</td><td style="text-align: right;">.514</td></tr>
+<tr><td>&#160;</td><td>@Local.localGetBookmarkCnt.rdDepth~&#160;</td><td>1&#160;</td><td style="text-align: right;">.514</td></tr>
+<tr><td>&#160;</td><td>@Local.localGetBookmarkCnt.rdSortKey~&#160;</td><td>goAnalysisGrid&#160;</td><td style="text-align: right;">.514</td></tr>
+<tr><td>&#160;</td><td>@Local.localGetBookmarkCnt.rdAction~&#160;</td><td>rdActionBookmark&#160;</td><td style="text-align: right;">.514</td></tr>
+<tr><td>&#160;</td><td>@Local.localGetBookmarkCnt.rdEditBookmark~&#160;</td><td>True&#160;</td><td style="text-align: right;">.514</td></tr>
+<tr><td>&#160;</td><td>@Local.localGetBookmarkCnt.ReportCenterExclude~&#160;</td><td>False&#160;</td><td style="text-align: right;">.514</td></tr>
+<tr><td>&#160;</td><td>@Local.localGetBookmarkCnt.ReportCenterIncludeBookmarks~&#160;</td><td>True&#160;</td><td style="text-align: right;">.514</td></tr>
+<tr><td>&#160;</td><td>@Local.localGetBookmarkCnt.ReportCenterAllowSchedule~&#160;</td><td>False&#160;</td><td style="text-align: right;">.514</td></tr>
+<tr><td>&#160;</td><td>@Local.localGetBookmarkCnt.rdReport~&#160;</td><td>InfoGo.goAnalysisGrid&#160;</td><td style="text-align: right;">.514</td></tr>
+<tr><td>&#160;</td><td>@Local.localGetBookmarkCnt.Name~&#160;</td><td>&#160;</td><td style="text-align: right;">.514</td></tr>
+<tr><td>&#160;</td><td>@Local.localGetBookmarkCnt.CustomColumn1~&#160;</td><td>&#160;</td><td style="text-align: right;">.514</td></tr>
+<tr><td>&#160;</td><td>@Local.localGetBookmarkCnt.CustomColumn2~&#160;</td><td>&#160;</td><td style="text-align: right;">.515</td></tr>
+<tr><td>&#160;</td><td>@Local.localGetBookmarkCnt.BookmarkID~&#160;</td><td>008c080c-da72-4307-8b3c-d3cae332529f&#160;</td><td style="text-align: right;">.515</td></tr>
+<tr><td>&#160;</td><td>@Local.localGetBookmarkCnt.ExtraFile~&#160;</td><td>DavoliogoCollection_008c080c-da72-4307-8b3c-d3cae332529f.xml&#160;</td><td style="text-align: right;">.517</td></tr>
+<tr><td>&#160;</td><td>@Local.localGetBookmarkCnt.Caption~&#160;</td><td>First Analysis&#160;</td><td style="text-align: right;">.517</td></tr>
+<tr><td>&#160;</td><td>@Local.localGetBookmarkCnt.SaveTime~&#160;</td><td>2020-06-04T21:38:01+00:00&#160;</td><td style="text-align: right;">.517</td></tr>
+<tr><td>&#160;</td><td>@Local.localGetBookmarkCnt.BookmarkCollection~&#160;</td><td>DavoliogoCollection&#160;</td><td style="text-align: right;">.517</td></tr>
+<tr><td>&#160;</td><td>@Local.localGetBookmarkCnt.BookmarkUserName~&#160;</td><td>Davolio&#160;</td><td style="text-align: right;">.517</td></tr>
+<tr><td>&#160;</td><td>@Local.localGetBookmarkCnt.IsShared~&#160;</td><td>True&#160;</td><td style="text-align: right;">.518</td></tr>
+<tr><td>&#160;</td><td>@Local.localGetBookmarkCnt.cntUserBookmarks~&#160;</td><td>3&#160;</td><td style="text-align: right;">.518</td></tr>
+<tr><td>Get LocalData&#160;</td><td>Finish&#160;</td><td>&#160;</td><td style="text-align: right;">.518</td></tr>
+<tr><td>Get DefaultRequestParams&#160;</td><td>Start&#160;</td><td>&#160;</td><td style="text-align: right;">.518</td></tr>
+<tr><td>&#160;</td><td>rdReport&#160;</td><td>InfoGo.goHome&#160;</td><td style="text-align: right;">.518</td></tr>
+<tr><td>Get DefaultRequestParams&#160;</td><td>Finish&#160;</td><td>&#160;</td><td style="text-align: right;">.518</td></tr>
+<tr><td>Report Show Modes&#160;</td><td>&#160;</td><td>&#160;</td><td style="text-align: right;">.520</td></tr>
+<tr><td>Apply Theme&#160;</td><td>Theme Name&#160;</td><td>Signal&#160;</td><td style="text-align: right;">.521</td></tr>
+<tr><td>&#160;</td><td>Applied Modifier&#160;</td><td>Update Count: 23&#160;</td><td style="text-align: right;">.552</td></tr>
+<tr><td>&#160;</td><td>&#160;</td><td><a href="../rdDownload/ECC80516F37FCC983E8D0459EAD7FB6F-8f240aeb500a436cb1d0a4d0aea3b90e-3a85d3e9fc824d31a04f0ed4f379ffcb-rdDebug.txt">View Modifier Log</a>&#160;</td><td style="text-align: right;">.552</td></tr>
+<tr><td>&#160;</td><td>&#160;</td><td><a href="../rdDownload/ECC80516F37FCC983E8D0459EAD7FB6F-8f240aeb500a436cb1d0a4d0aea3b90e-3f665d99e8534e26a2005739f75d57e4-rdDebug.xml">View Modified Definition</a>&#160;</td><td style="text-align: right;">.553</td></tr>
+<tr><td>&#160;</td><td>Load Modifier File for element: DefinitionModifierFile ID: DefinitionModifier&#160;</td><td>/home/centos/apache-tomcat-8.5.55/webapps/ssrm/rdDataCache/goMasterModifier_Davolio.xml&#160;</td><td style="text-align: right;">.554</td></tr>
+<tr><td>&#160;</td><td>Applied Modifier&#160;</td><td>Update Count: 1&#160;</td><td style="text-align: right;">.556</td></tr>
+<tr><td>&#160;</td><td>&#160;</td><td><a href="../rdDownload/ECC80516F37FCC983E8D0459EAD7FB6F-8f240aeb500a436cb1d0a4d0aea3b90e-c60ef566dbfa46abb4ceb8096b167806-rdDebug.txt">View Modifier Log</a>&#160;</td><td style="text-align: right;">.556</td></tr>
+<tr><td>&#160;</td><td>&#160;</td><td><a href="../rdDownload/ECC80516F37FCC983E8D0459EAD7FB6F-8f240aeb500a436cb1d0a4d0aea3b90e-e41e4b838aa046c481f5659b81ea8efe-rdDebug.xml">View Modified Definition</a>&#160;</td><td style="text-align: right;">.556</td></tr>
+<tr><td>&#160;</td><td>Load Modifier File for element: DefinitionModifierFile ID: CustomDefinitionModifierFile&#160;</td><td>goCustomizations.dmfMaster.xml&#160;</td><td style="text-align: right;">.558</td></tr>
+<tr><td>&#160;</td><td>Applied Modifier&#160;</td><td>Update Count: 0&#160;</td><td style="text-align: right;">.558</td></tr>
+<tr><td>&#160;</td><td>&#160;</td><td><a href="../rdDownload/ECC80516F37FCC983E8D0459EAD7FB6F-8f240aeb500a436cb1d0a4d0aea3b90e-e6365720aabc48619bbd2e2228d75ec4-rdDebug.txt">View Modifier Log</a>&#160;</td><td style="text-align: right;">.558</td></tr>
+<tr><td>&#160;</td><td>&#160;</td><td><a href="../rdDownload/ECC80516F37FCC983E8D0459EAD7FB6F-8f240aeb500a436cb1d0a4d0aea3b90e-cdb728366b69445b93469c2d46fe8151-rdDebug.xml">View Modified Definition</a>&#160;</td><td style="text-align: right;">.559</td></tr>
+<tr><td>&#160;</td><td>Load Modifier File for element: DefinitionModifierFile ID: CustomDefinitionModifierFile&#160;</td><td>goCustomizations.dmfHome.xml&#160;</td><td style="text-align: right;">.560</td></tr>
+<tr><td>&#160;</td><td>Applied Modifier&#160;</td><td>Update Count: 0&#160;</td><td style="text-align: right;">.560</td></tr>
+<tr><td>&#160;</td><td>&#160;</td><td><a href="../rdDownload/ECC80516F37FCC983E8D0459EAD7FB6F-8f240aeb500a436cb1d0a4d0aea3b90e-3c0072cf4c144596bbe1643b63f3206f-rdDebug.txt">View Modifier Log</a>&#160;</td><td style="text-align: right;">.560</td></tr>
+<tr><td>&#160;</td><td>&#160;</td><td><a href="../rdDownload/ECC80516F37FCC983E8D0459EAD7FB6F-8f240aeb500a436cb1d0a4d0aea3b90e-9e5c3d1ef3854134ad9a47ae48f2a59e-rdDebug.xml">View Modified Definition</a>&#160;</td><td style="text-align: right;">.566</td></tr>
+<tr><td>MenuTree&#160;</td><td>Generate Definition&#160;</td><td>&#160;</td><td style="text-align: right;">.598</td></tr>
+<tr><td>DataMenuTree&#160;</td><td>Generated&#160;</td><td><a href="../rdDownload/ECC80516F37FCC983E8D0459EAD7FB6F-8f240aeb500a436cb1d0a4d0aea3b90e-149b124105d34b5aa72adfb77a1f5c44-rdDebug.xml">View Definition</a>&#160;</td><td style="text-align: right;">.599</td></tr>
+<tr><td>BookmarkOrganizer&#160;</td><td>Generate Definition&#160;</td><td>&#160;</td><td style="text-align: right;">.610</td></tr>
+<tr><td>&#160;</td><td>Load Modifier File for element: BookmarkOrganizer ID: BookmarkOrganizer&#160;</td><td>goCustomizations.tmfBookmarkOrganizer.xml&#160;</td><td style="text-align: right;">.611</td></tr>
+<tr><td>&#160;</td><td>Applied Modifier&#160;</td><td>Update Count: 9&#160;</td><td style="text-align: right;">.617</td></tr>
+<tr><td>&#160;</td><td>&#160;</td><td><a href="../rdDownload/ECC80516F37FCC983E8D0459EAD7FB6F-8f240aeb500a436cb1d0a4d0aea3b90e-1c67a103d8b545fa9fab7c2933f8dffc-rdDebug.txt">View Modifier Log</a>&#160;</td><td style="text-align: right;">.617</td></tr>
+<tr><td>&#160;</td><td>&#160;</td><td><a href="../rdDownload/ECC80516F37FCC983E8D0459EAD7FB6F-8f240aeb500a436cb1d0a4d0aea3b90e-5170c20491b94f21a5cedbc2b77aed66-rdDebug.xml">View Modified Definition</a>&#160;</td><td style="text-align: right;">.618</td></tr>
+<tr><td>BookmarkOrganizer&#160;</td><td>Generated BookmarkOrganizer&#160;</td><td><a href="../rdDownload/ECC80516F37FCC983E8D0459EAD7FB6F-8f240aeb500a436cb1d0a4d0aea3b90e-baa74b9c0b4d4ffd9354941ba7c12446-rdDebug.xml">View Definition</a>&#160;</td><td style="text-align: right;">.632</td></tr>
+<tr><td>Action.BookmarkSharing&#160;</td><td>Generate Definition&#160;</td><td>&#160;</td><td style="text-align: right;">.649</td></tr>
+<tr><td>Action.BookmarkSharing&#160;</td><td>Generate Definition&#160;</td><td>&#160;</td><td style="text-align: right;">.654</td></tr>
+<tr><td>Action.BookmarkSharing&#160;</td><td>Generate Definition&#160;</td><td>&#160;</td><td style="text-align: right;">.837</td></tr>
+<tr><td>Show XSL&#160;</td><td>XSL Data&#160;</td><td><a href="../rdDownload/ECC80516F37FCC983E8D0459EAD7FB6F-8f240aeb500a436cb1d0a4d0aea3b90e-493efb4ef58c4281984cef6e0801a789-rdDebug.txt">View XSL</a>&#160;</td><td style="text-align: right;">.892</td></tr>
+<tr><td>Load XSL&#160;</td><td>Success&#160;</td><td>True&#160;</td><td style="text-align: right;">.893</td></tr>
+<tr><td>Get XML DataLayers&#160;</td><td>&#160;</td><td>&#160;</td><td style="text-align: right;">.920</td></tr>
+<tr><td>&#160;</td><td>&#160;</td><td>Evaluated True, processing DataLayer.&#160;</td><td style="text-align: right;">.926</td></tr>
+<tr><td>Get DataLayer.Bookmarks&#160;</td><td>ID = Folders&#160;</td><td>&#160;</td><td style="text-align: right;">.926</td></tr>
+<tr><td>&#160;</td><td>&#160;</td><td>Evaluated True, processing DataLayer.&#160;</td><td style="text-align: right;">.926</td></tr>
+<tr><td>&#160;</td><td>Compute Data Operation Plan&#160;</td><td><a href="javascript:rdDebugExpand('11e64c2b-5117-4d5d-a239-b5ec18be8070')">View Data Operation Plan</a><span style="display:none" id="11e64c2b-5117-4d5d-a239-b5ec18be8070">Data Operation Group 1:<br/> - Retrieve data<br/> - CompareFilter<br/><br/>Data Operation Group 2:<br/> - Lookup ID="lookupBookmarks"<br/><br/>Data Operation Group 3:<br/> - ConditionFilter ID="showHideMyVisualizations"<br/></span>&#160;</td><td style="text-align: right;">.937</td></tr>
+<tr><td>&#160;</td><td>Data Operation Group 1 of 3&#160;</td><td><a href="javascript:rdDebugExpand('0403a874-5be3-4339-bb11-53611a1add87')">View Group Details (1 Items)</a><span style="display:none" id="0403a874-5be3-4339-bb11-53611a1add87">Details for Data Operation Group 1 of 3<br/><br/>Run CompareFilter (ID = CompareFilter)<br/> - Filter Criteria: SharedFolder = ''<br/><br/></span>&#160;</td><td style="text-align: right;">.937</td></tr>
+<tr><td>&#160;</td><td>Processed Row Count&#160;</td><td>1&#160;</td><td style="text-align: right;">.962</td></tr>
+<tr><td>&#160;</td><td>Processed Data&#160;</td><td><a href="../rdTemplate/rdDebugData.htm?url=../rdDownload/ECC80516F37FCC983E8D0459EAD7FB6F-8f240aeb500a436cb1d0a4d0aea3b90e-5ebede78035a423db6ac3bd24e598600-rdDebug.xml">View File Stream Data (192 bytes)</a>&#160;</td><td style="text-align: right;">.962</td></tr>
+<tr><td>&#160;</td><td>Data Operation Group 2 of 3&#160;</td><td><a href="javascript:rdDebugExpand('bb9cb3e2-cbae-4e7d-bed8-82da2ef368e8')">View Group Details (1 Items)</a><span style="display:none" id="bb9cb3e2-cbae-4e7d-bed8-82da2ef368e8">Details for Data Operation Group 2 of 3<br/><br/>Run Lookup(ID = lookupBookmarks)<br/><br/></span>&#160;</td><td style="text-align: right;">.963</td></tr>
+<tr><td>&#160;</td><td>Processed Row Count&#160;</td><td>1&#160;</td><td style="text-align: right;">1.031</td></tr>
+<tr><td>&#160;</td><td>Processed Data&#160;</td><td><a href="../rdTemplate/rdDebugData.htm?url=../rdDownload/ECC80516F37FCC983E8D0459EAD7FB6F-8f240aeb500a436cb1d0a4d0aea3b90e-98e86051ff78408b908c9d03375189ec-rdDebug.xml">View Memory Stream Data (575 bytes)</a>&#160;</td><td style="text-align: right;">1.031</td></tr>
+<tr><td>&#160;</td><td>Data Operation Group 3 of 3&#160;</td><td><a href="javascript:rdDebugExpand('0e04906d-788d-4a1e-9ad1-bebc534a859c')">View Group Details (1 Items)</a><span style="display:none" id="0e04906d-788d-4a1e-9ad1-bebc534a859c">Details for Data Operation Group 3 of 3<br/><br/>Run ConditionFilter (ID = showHideMyVisualizations)<br/> - Condition: ('@Data.Name~' <> 'My Visualizations') ||<br/>('@Data.HasChildren~' == 'True') ||<br/>(@Data.cntBookmarksUnderFolder~ > 0)<br/><br/></span>&#160;</td><td style="text-align: right;">1.031</td></tr>
+<tr><td>&#160;</td><td>Processed Row Count&#160;</td><td>1&#160;</td><td style="text-align: right;">1.035</td></tr>
+<tr><td>&#160;</td><td>Processed Data&#160;</td><td><a href="../rdTemplate/rdDebugData.htm?url=../rdDownload/ECC80516F37FCC983E8D0459EAD7FB6F-8f240aeb500a436cb1d0a4d0aea3b90e-7479ef8e9117467480696a520149de2a-rdDebug.xml">View File Stream Data (575 bytes)</a>&#160;</td><td style="text-align: right;">1.035</td></tr>
+<tr><td>&#160;</td><td>Summary Values&#160;</td><td>Setting up and starting calculations&#160;</td><td style="text-align: right;">1.036</td></tr>
+<tr><td>&#160;</td><td>Summary Values&#160;</td><td>Calculations completed&#160;</td><td style="text-align: right;">1.036</td></tr>
+<tr><td>&#160;</td><td>&#160;</td><td>Evaluated True, processing DataLayer.&#160;</td><td style="text-align: right;">1.037</td></tr>
+<tr><td>&#160;</td><td>&#160;</td><td>Evaluated True, processing DataLayer.&#160;</td><td style="text-align: right;">1.037</td></tr>
+<tr><td>Get DataLayer.Bookmarks&#160;</td><td>ID = SharedFolders&#160;</td><td>&#160;</td><td style="text-align: right;">1.037</td></tr>
+<tr><td>&#160;</td><td>&#160;</td><td>Evaluated True, processing DataLayer.&#160;</td><td style="text-align: right;">1.037</td></tr>
+<tr><td>&#160;</td><td>Compute Data Operation Plan&#160;</td><td><a href="javascript:rdDebugExpand('25ae0e55-fddf-40fa-a2da-a3512e857284')">View Data Operation Plan</a><span style="display:none" id="25ae0e55-fddf-40fa-a2da-a3512e857284">Data Operation Group 1:<br/> - Retrieve data<br/> - CompareFilter<br/></span>&#160;</td><td style="text-align: right;">1.038</td></tr>
+<tr><td>&#160;</td><td>Data Operation Group 1 of 1&#160;</td><td><a href="javascript:rdDebugExpand('cc85a57c-5f0c-4a6d-ba4b-b492a81274dd')">View Group Details (1 Items)</a><span style="display:none" id="cc85a57c-5f0c-4a6d-ba4b-b492a81274dd">Details for Data Operation Group 1 of 1<br/><br/>Run CompareFilter (ID = CompareFilter)<br/> - Filter Criteria: SharedFolder != ''<br/><br/></span>&#160;</td><td style="text-align: right;">1.038</td></tr>
+<tr><td>&#160;</td><td>Processed Row Count&#160;</td><td>1&#160;</td><td style="text-align: right;">1.061</td></tr>
+<tr><td>&#160;</td><td>Processed Data&#160;</td><td><a href="../rdTemplate/rdDebugData.htm?url=../rdDownload/ECC80516F37FCC983E8D0459EAD7FB6F-8f240aeb500a436cb1d0a4d0aea3b90e-c25c7434acbf408386556a12102b91c4-rdDebug.xml">View File Stream Data (220 bytes)</a>&#160;</td><td style="text-align: right;">1.062</td></tr>
+<tr><td>&#160;</td><td>Summary Values&#160;</td><td>Setting up and starting calculations&#160;</td><td style="text-align: right;">1.062</td></tr>
+<tr><td>&#160;</td><td>Summary Values&#160;</td><td>Calculations completed&#160;</td><td style="text-align: right;">1.063</td></tr>
+<tr><td>Launch DataLayer Threads&#160;</td><td>&#160;</td><td>&#160;</td><td style="text-align: right;">1.063</td></tr>
+<tr><td>&#160;</td><td>Thread for DataLayer ID: &#160;</td><td><a href="../rdDownload/ECC80516F37FCC983E8D0459EAD7FB6F-ffede58786f54ea9af1c33fea808a2de-rdDebug.htm">View Debugger Trace</a>&#160;</td><td style="text-align: right;">1.066</td></tr>
+<tr><td>&#160;</td><td>Threads Completed&#160;</td><td>&#160;</td><td style="text-align: right;">1.108</td></tr>
+<tr><td>&#160;</td><td>&#160;</td><td>Evaluated True, processing DataLayer.&#160;</td><td style="text-align: right;">1.108</td></tr>
+<tr><td>&#160;</td><td>&#160;</td><td>Evaluated True, processing DataLayer.&#160;</td><td style="text-align: right;">1.108</td></tr>
+<tr><td>&#160;</td><td>&#160;</td><td>Evaluated True, processing DataLayer.&#160;</td><td style="text-align: right;">1.108</td></tr>
+<tr><td>Get DataLayer.Linked&#160;</td><td>ID = rdDataLayer_rdReportCenterID&#160;</td><td>&#160;</td><td style="text-align: right;">1.109</td></tr>
+<tr><td>&#160;</td><td>Evaluate IncludeConditions&#160;</td><td>Determining which elements to process.&#160;</td><td style="text-align: right;">1.109</td></tr>
+<tr><td>&#160;</td><td>CompareFilter&#160;</td><td>ID = compareInFolder&#160;</td><td style="text-align: right;">1.109</td></tr>
+<tr><td>&#160;</td><td>&#160;</td><td>IncludeCondition: &quot;&quot;.length = 0 &#160;</td><td style="text-align: right;">1.110</td></tr>
+<tr><td>&#160;</td><td>&#160;</td><td>Evaluated True, processing CompareFilter.&#160;</td><td style="text-align: right;">1.115</td></tr>
+<tr><td>&#160;</td><td>CompareFilter&#160;</td><td>ID = compareIsFind&#160;</td><td style="text-align: right;">1.116</td></tr>
+<tr><td>&#160;</td><td>&#160;</td><td>IncludeCondition: &quot;&quot;.length &gt; 0&#160;</td><td style="text-align: right;">1.116</td></tr>
+<tr><td>&#160;</td><td>&#160;</td><td>Evaluated False, skipping CompareFilter.&#160;</td><td style="text-align: right;">1.122</td></tr>
+<tr><td>&#160;</td><td>Run SortFilter&#160;</td><td>ID = SortFilter&#160;</td><td style="text-align: right;">1.122</td></tr>
+<tr><td>&#160;</td><td>Compute Data Operation Plan&#160;</td><td><a href="javascript:rdDebugExpand('5b9890f7-0673-4a3c-92a9-941de389919a')">View Data Operation Plan</a><span style="display:none" id="5b9890f7-0673-4a3c-92a9-941de389919a">Data Operation Group 1:<br/> - Retrieve data<br/> - CompareFilter ID="compareInFolder"<br/><br/>Data Operation Group 2:<br/> - SortFilter<br/></span>&#160;</td><td style="text-align: right;">1.123</td></tr>
+<tr><td>&#160;</td><td>Data Operation Group 1 of 2&#160;</td><td><a href="javascript:rdDebugExpand('896c6daa-f905-40a3-aac7-b5ce90ef3d97')">View Group Details (1 Items)</a><span style="display:none" id="896c6daa-f905-40a3-aac7-b5ce90ef3d97">Details for Data Operation Group 1 of 2<br/><br/>Run CompareFilter (ID = compareInFolder)<br/> - Filter Criteria: FolderID = ''<br/><br/></span>&#160;</td><td style="text-align: right;">1.123</td></tr>
+<tr><td>&#160;</td><td>Processed Row Count&#160;</td><td>3&#160;</td><td style="text-align: right;">1.131</td></tr>
+<tr><td>&#160;</td><td>Processed Data&#160;</td><td><a href="../rdTemplate/rdDebugData.htm?url=../rdDownload/ECC80516F37FCC983E8D0459EAD7FB6F-8f240aeb500a436cb1d0a4d0aea3b90e-a9aeb895d7a9499c9f05a03656924978-rdDebug.xml">View File Stream Data (1,900 bytes)</a>&#160;</td><td style="text-align: right;">1.131</td></tr>
+<tr><td>&#160;</td><td>Data Operation Group 2 of 2&#160;</td><td><a href="javascript:rdDebugExpand('2ac5929c-e12e-4779-b526-15fd9833d0b9')">View Group Details (1 Items)</a><span style="display:none" id="2ac5929c-e12e-4779-b526-15fd9833d0b9">Details for Data Operation Group 2 of 2<br/><br/>Run SortFilter(ID = SortFilter)<br/> - DataType: Date<br/> - SortColumn: SaveTime<br/> - SortSequence: Descending<br/><br/></span>&#160;</td><td style="text-align: right;">1.131</td></tr>
+<tr><td>&#160;</td><td>&#160;</td><td>Start sort&#160;</td><td style="text-align: right;">1.132</td></tr>
+<tr><td>&#160;</td><td>&#160;</td><td>Write sorted file&#160;</td><td style="text-align: right;">1.133</td></tr>
+<tr><td>&#160;</td><td>&#160;</td><td>Sort completed&#160;</td><td style="text-align: right;">1.133</td></tr>
+<tr><td>&#160;</td><td>Processed Row Count&#160;</td><td>3&#160;</td><td style="text-align: right;">1.133</td></tr>
+<tr><td>&#160;</td><td>Processed Data&#160;</td><td><a href="../rdTemplate/rdDebugData.htm?url=../rdDownload/ECC80516F37FCC983E8D0459EAD7FB6F-8f240aeb500a436cb1d0a4d0aea3b90e-2559f05c4ea84526a184f5726bff861f-rdDebug.xml">View File Stream Data (1,905 bytes)</a>&#160;</td><td style="text-align: right;">1.133</td></tr>
+<tr><td>&#160;</td><td>Summary Values&#160;</td><td>Setting up and starting calculations&#160;</td><td style="text-align: right;">1.144</td></tr>
+<tr><td>&#160;</td><td>Summary Values&#160;</td><td>Calculations completed&#160;</td><td style="text-align: right;">1.144</td></tr>
+<tr><td>&#160;</td><td>Finalize DataLayers&#160;</td><td>&#160;</td><td style="text-align: right;">1.145</td></tr>
+<tr><td>&#160;</td><td>Merge Data&#160;</td><td>Start&#160;</td><td style="text-align: right;">1.145</td></tr>
+<tr><td>&#160;</td><td>Merge Data&#160;</td><td>Finish&#160;</td><td style="text-align: right;">1.146</td></tr>
+<tr><td>&#160;</td><td>Data Engine&#160;</td><td>Data processing completed.&#160;</td><td style="text-align: right;">1.146</td></tr>
+<tr><td>Generated DataLayers&#160;</td><td>Memory stream&#160;</td><td><a href="../rdTemplate/rdDebugData.htm?url=../rdDownload/ECC80516F37FCC983E8D0459EAD7FB6F-8f240aeb500a436cb1d0a4d0aea3b90e-b495f120db374b33a0c4d23055ca2c27-rdDebug.xml">View Data</a>&#160;</td><td style="text-align: right;">1.147</td></tr>
+<tr><td>&#160;</td><td>DataLayer Summary XML&#160;</td><td><a href="../rdTemplate/rdDebugData.htm?url=../rdDownload/ECC80516F37FCC983E8D0459EAD7FB6F-8f240aeb500a436cb1d0a4d0aea3b90e-34cf300d68ef4c1fafd19bff246e296b-rdDebug.xml">View Data</a>&#160;</td><td style="text-align: right;">1.147</td></tr>
+<tr><td>&#160;</td><td>Save data in cache with key:3085283111&#160;</td><td><a href="../rdTemplate/rdDebugData.htm?url=../rdDownload/ECC80516F37FCC983E8D0459EAD7FB6F-8f240aeb500a436cb1d0a4d0aea3b90e-0ac50820a4c14ade9a35b209f8d3da98-rdDebug.xml">View Data</a>&#160;</td><td style="text-align: right;">1.161</td></tr>
+<tr><td>Interactive Paging&#160;</td><td>Start&#160;</td><td>&#160;</td><td style="text-align: right;">1.162</td></tr>
+<tr><td>&#160;</td><td>Finish&#160;</td><td><a href="../rdTemplate/rdDebugData.htm?url=../rdDownload/ECC80516F37FCC983E8D0459EAD7FB6F-8f240aeb500a436cb1d0a4d0aea3b90e-474caa9b21e14634a36f5d21a1de1fdc-rdDebug.xml">View Data</a>&#160;</td><td style="text-align: right;">1.164</td></tr>
+<tr><td>XSL Transformation&#160;</td><td>Start&#160;</td><td>&#160;</td><td style="text-align: right;">1.164</td></tr>
+<tr><td>&#160;</td><td>Finish&#160;</td><td>&#160;</td><td style="text-align: right;">1.183</td></tr>
+<tr><td>HTML Token Replacement&#160;</td><td>Start&#160;</td><td>HTML Size: 103,513&#160;</td><td style="text-align: right;">1.184</td></tr>
+<tr><td>&#160;</td><td>Finish&#160;</td><td>HTML Size: 101,419&#160;</td><td style="text-align: right;">1.198</td></tr>
+<tr><td>Insert Cache Key&#160;</td><td>Start&#160;</td><td>&#160;</td><td style="text-align: right;">1.200</td></tr>
+<tr><td>&#160;</td><td>Finish&#160;</td><td>HTML Size: 101,307&#160;</td><td style="text-align: right;">1.201</td></tr>
+<tr><td>Insert Hidden RequestForwarding Tags&#160;</td><td>Start&#160;</td><td>&#160;</td><td style="text-align: right;">1.204</td></tr>
+<tr><td>&#160;</td><td>Finish&#160;</td><td>HTML Size: 101,396&#160;</td><td style="text-align: right;">1.214</td></tr>
+<tr><td>Formula Calculations&#160;</td><td>Start&#160;</td><td>&#160;</td><td style="text-align: right;">1.221</td></tr>
+<tr><td>&#160;</td><td>Finish&#160;</td><td>HTML Size: 100,375&#160;</td><td style="text-align: right;">1.239</td></tr>
+<tr><td>Formula Calculations&#160;</td><td>Start&#160;</td><td>&#160;</td><td style="text-align: right;">1.241</td></tr>
+<tr><td>&#160;</td><td>Finish&#160;</td><td>HTML Size: 93,866&#160;</td><td style="text-align: right;">1.264</td></tr>
+<tr><td>Formatting Labels&#160;</td><td>Start&#160;</td><td>&#160;</td><td style="text-align: right;">1.267</td></tr>
+<tr><td>&#160;</td><td>Finish&#160;</td><td>HTML Size: 93,135&#160;</td><td style="text-align: right;">1.269</td></tr>
+<tr><td>Numbered Interactive Paging&#160;</td><td>Start&#160;</td><td>&#160;</td><td style="text-align: right;">1.283</td></tr>
+<tr><td>&#160;</td><td>Finish&#160;</td><td>HTML Size: 92,649&#160;</td><td style="text-align: right;">1.284</td></tr>
+<tr><td>Conditional Element Application&#160;</td><td>Start&#160;</td><td>&#160;</td><td style="text-align: right;">1.284</td></tr>
+<tr><td>&#160;</td><td>Finish&#160;</td><td>HTML Size: 61,885&#160;</td><td style="text-align: right;">1.305</td></tr>
+<tr><td>Conditional Class Application&#160;</td><td>Start&#160;</td><td>&#160;</td><td style="text-align: right;">1.307</td></tr>
+<tr><td>&#160;</td><td>Finish&#160;</td><td>HTML Size: 61,963&#160;</td><td style="text-align: right;">1.324</td></tr>
+<tr><td>Convert &lt;BR&gt;&lt;/BR&gt; to &lt;BR /&gt;&#160;</td><td>Start&#160;</td><td>&#160;</td><td style="text-align: right;">1.355</td></tr>
+<tr><td>&#160;</td><td>Finish&#160;</td><td>HTML Size: 61,897&#160;</td><td style="text-align: right;">1.356</td></tr>
+<tr><td>File Cleanup&#160;</td><td>Queued cleanup thread.&#160;</td><td>&#160;</td><td style="text-align: right;">1.362</td></tr>
+<tr><td>&#160;</td><td>rdTempFileCleanupInterval&#160;</td><td>5 minutes&#160;</td><td style="text-align: right;">1.362</td></tr>
+<tr><td>&#160;</td><td>rdTempFileLifespan&#160;</td><td>60 minutes&#160;</td><td style="text-align: right;">1.362</td></tr>
+<tr><td>***WARNING***&#160;</td><td>Tokens without values.&#160;</td><td><a href="javascript:rdDebugExpand('dfa8279b-05c9-4cc0-a1a6-3bcf9fcff862')">View tokens list</a><span style="display:none" id="dfa8279b-05c9-4cc0-a1a6-3bcf9fcff862">@Session.goBookmarkCollection~<br/>@Constant.goGlobalMenuCaption~<br/>@Request.goFind~<br/>@Session.rdSelectedFolderID~<br/>@Function.UserName~</span>&#160;</td><td style="text-align: right;">1.411</td></tr>
+<tr><td>Debug&#160;</td><td>Completed&#160;</td><td>2020/06/12 3:57:37.2 PM&#160;</td><td style="text-align: right;">1.411</td></tr>
+<tr><td>Process&#160;</td><td>Start&#160;</td><td>&#160;</td><td style="text-align: right;">1.412</td></tr>
+<tr><td>Requested URL&#160;</td><td>&#160;</td><td>http://info.cs.logianalytics.com/ssrm/rdPage.aspx&#160;</td><td style="text-align: right;">1.412</td></tr>
+<tr><td>Check Security&#160;</td><td>&#160;</td><td>&#160;</td><td style="text-align: right;">1.412</td></tr>
+<tr><td>Application Security&#160;</td><td>Enabled&#160;</td><td>True&#160;</td><td style="text-align: right;">1.413</td></tr>
+<tr><td>&#160;</td><td>Authenticated User&#160;</td><td>Davolio&#160;</td><td style="text-align: right;">1.413</td></tr>
+<tr><td>&#160;</td><td>User Roles&#160;</td><td>InfoGoScheduleManager,Sales Representative&#160;</td><td style="text-align: right;">1.413</td></tr>
+<tr><td>&#160;</td><td>User Rights&#160;</td><td>InfoGoScheduleManager,Sales Representative&#160;</td><td style="text-align: right;">1.413</td></tr>
+<tr><td>&#160;</td><td>rdProcess&#160;</td><td>Logging&#160;</td><td style="text-align: right;">1.414</td></tr>
+<tr><td>&#160;</td><td>rdTask&#160;</td><td>log&#160;</td><td style="text-align: right;">1.414</td></tr>
+<tr><td style="text-align: center; border-top: 2px solid black; background-color: #eaeff8; font-weight: bold; border-bottom: solid 1px #3f60af" colspan=4>Start Task log&#160;</td></tr>
+<tr><td>Task&#160;</td><td>Start&#160;</td><td>&#160;</td><td style="text-align: right;">1.416</td></tr>
+<tr><td>&#160;</td><td>ID&#160;</td><td>log&#160;</td><td style="text-align: right;">1.416</td></tr>
+<tr><td style="text-align: center; border-top: 2px solid black; background-color: #eaeff8; font-weight: bold; border-bottom: solid 1px #3f60af" colspan=4>Start Procedure - ID: logger-SimpleLogging&#160;</td></tr>
+<tr><td>Start Procedure&#160;</td><td>Type&#160;</td><td>PluginCall&#160;</td><td style="text-align: right;">1.420</td></tr>
+<tr><td>&#160;</td><td>Resolve token variables.&#160;</td><td>&#160;</td><td style="text-align: right;">1.421</td></tr>
+<tr><td>&#160;</td><td>Resolved Procedure Element&#160;</td><td><a href="../rdDownload/ECC80516F37FCC983E8D0459EAD7FB6F-8f240aeb500a436cb1d0a4d0aea3b90e-57667adf0f2e474a9b7cfd9b706399f1-rdDebug.xml">View</a>&#160;</td><td style="text-align: right;">1.422</td></tr>
+<tr><td>Call Procedure Plugin&#160;</td><td>ID&#160;</td><td>logger-SimpleLogging&#160;</td><td style="text-align: right;">1.422</td></tr>
+<tr><td>&#160;</td><td>Invoking Java Plugin &#160;</td><td>com.logianalytics.plugins.SimpleLogging&#160;</td><td style="text-align: right;">1.424</td></tr>
+<tr><td>Java Plugin&#160;</td><td>com.logianalytics.plugins.SimpleLogging&#160;</td><td>logEvent completed&#160;</td><td style="text-align: right;">1.426</td></tr>
+<tr><td>&#160;</td><td>Called Plugin&#160;</td><td>&#160;</td><td style="text-align: right;">1.426</td></tr>
+<tr><td>Procedure Return Values&#160;</td><td>&#160;</td><td>&#160;</td><td style="text-align: right;">1.426</td></tr>
+<tr><td>&#160;</td><td>Status&#160;</td><td>Finish&#160;</td><td style="text-align: right;">1.426</td></tr>
+<tr><td style="text-align: center; border-top: 2px solid black; background-color: #eaeff8; font-weight: bold; border-bottom: solid 1px #3f60af" colspan=4>Completed Task log&#160;</td></tr>
+<tr><td>***WARNING***&#160;</td><td>Tokens without values.&#160;</td><td><a href="javascript:rdDebugExpand('c9c885d9-ee7e-4679-ba52-9766a72f589f')">View tokens list</a><span style="display:none" id="c9c885d9-ee7e-4679-ba52-9766a72f589f">@Function.UserName~<br/>@Request.EventDuration~<br/>@Request.ReportID~<br/>@Request.RowCount~<br/>@Request.SQL~</span>&#160;</td><td style="text-align: right;">1.427</td></tr>
+<tr><td>Process&#160;</td><td>Start&#160;</td><td>&#160;</td><td style="text-align: right;">1.428</td></tr>
+<tr><td>Requested URL&#160;</td><td>&#160;</td><td>http://info.cs.logianalytics.com/ssrm/rdPage.aspx&#160;</td><td style="text-align: right;">1.428</td></tr>
+<tr><td>Check Security&#160;</td><td>&#160;</td><td>&#160;</td><td style="text-align: right;">1.428</td></tr>
+<tr><td>&#160;</td><td>rdProcess&#160;</td><td>Logging&#160;</td><td style="text-align: right;">1.429</td></tr>
+<tr><td>&#160;</td><td>rdTask&#160;</td><td>log&#160;</td><td style="text-align: right;">1.429</td></tr>
+<tr><td style="text-align: center; border-top: 2px solid black; background-color: #eaeff8; font-weight: bold; border-bottom: solid 1px #3f60af" colspan=4>Start Task log&#160;</td></tr>
+<tr><td>Task&#160;</td><td>Start&#160;</td><td>&#160;</td><td style="text-align: right;">1.437</td></tr>
+<tr><td>&#160;</td><td>ID&#160;</td><td>log&#160;</td><td style="text-align: right;">1.437</td></tr>
+<tr><td style="text-align: center; border-top: 2px solid black; background-color: #eaeff8; font-weight: bold; border-bottom: solid 1px #3f60af" colspan=4>Start Procedure - ID: logger-SimpleLogging&#160;</td></tr>
+<tr><td>Start Procedure&#160;</td><td>Type&#160;</td><td>PluginCall&#160;</td><td style="text-align: right;">1.440</td></tr>
+<tr><td>&#160;</td><td>Resolve token variables.&#160;</td><td>&#160;</td><td style="text-align: right;">1.440</td></tr>
+<tr><td>&#160;</td><td>Resolved Procedure Element&#160;</td><td><a href="../rdDownload/ECC80516F37FCC983E8D0459EAD7FB6F-8f240aeb500a436cb1d0a4d0aea3b90e-7269ad23e4b64e41af7205f93a44acaa-rdDebug.xml">View</a>&#160;</td><td style="text-align: right;">1.441</td></tr>
+<tr><td>Call Procedure Plugin&#160;</td><td>ID&#160;</td><td>logger-SimpleLogging&#160;</td><td style="text-align: right;">1.442</td></tr>
+<tr><td>&#160;</td><td>Invoking Java Plugin &#160;</td><td>com.logianalytics.plugins.SimpleLogging&#160;</td><td style="text-align: right;">1.443</td></tr>
+<tr><td>Java Plugin&#160;</td><td>com.logianalytics.plugins.SimpleLogging&#160;</td><td>logEvent completed&#160;</td><td style="text-align: right;">1.443</td></tr>
+<tr><td>&#160;</td><td>Called Plugin&#160;</td><td>&#160;</td><td style="text-align: right;">1.444</td></tr>
+<tr><td>Procedure Return Values&#160;</td><td>&#160;</td><td>&#160;</td><td style="text-align: right;">1.444</td></tr>
+<tr><td>&#160;</td><td>Status&#160;</td><td>Finish&#160;</td><td style="text-align: right;">1.444</td></tr>
+<tr><td style="text-align: center; border-top: 2px solid black; background-color: #eaeff8; font-weight: bold; border-bottom: solid 1px #3f60af" colspan=4>Completed Task log&#160;</td></tr>
+<tr><td>***WARNING***&#160;</td><td>Tokens without values.&#160;</td><td><a href="javascript:rdDebugExpand('0257180e-bc26-42c8-a75a-7d96c7e55333')">View tokens list</a><span style="display:none" id="0257180e-bc26-42c8-a75a-7d96c7e55333">@Function.UserName~<br/>@Request.EventDuration~<br/>@Request.ReportID~<br/>@Request.RowCount~<br/>@Request.SQL~</span>&#160;</td><td style="text-align: right;">1.445</td></tr>
+<tr><td>Process&#160;</td><td>Start&#160;</td><td>&#160;</td><td style="text-align: right;">1.445</td></tr>
+<tr><td>Requested URL&#160;</td><td>&#160;</td><td>http://info.cs.logianalytics.com/ssrm/rdPage.aspx&#160;</td><td style="text-align: right;">1.445</td></tr>
+<tr><td>Check Security&#160;</td><td>&#160;</td><td>&#160;</td><td style="text-align: right;">1.446</td></tr>
+<tr><td>&#160;</td><td>rdProcess&#160;</td><td>Logging&#160;</td><td style="text-align: right;">1.453</td></tr>
+<tr><td>&#160;</td><td>rdTask&#160;</td><td>log&#160;</td><td style="text-align: right;">1.454</td></tr>
+<tr><td style="text-align: center; border-top: 2px solid black; background-color: #eaeff8; font-weight: bold; border-bottom: solid 1px #3f60af" colspan=4>Start Task log&#160;</td></tr>
+<tr><td>Task&#160;</td><td>Start&#160;</td><td>&#160;</td><td style="text-align: right;">1.455</td></tr>
+<tr><td>&#160;</td><td>ID&#160;</td><td>log&#160;</td><td style="text-align: right;">1.455</td></tr>
+<tr><td style="text-align: center; border-top: 2px solid black; background-color: #eaeff8; font-weight: bold; border-bottom: solid 1px #3f60af" colspan=4>Start Procedure - ID: logger-SimpleLogging&#160;</td></tr>
+<tr><td>Start Procedure&#160;</td><td>Type&#160;</td><td>PluginCall&#160;</td><td style="text-align: right;">1.458</td></tr>
+<tr><td>&#160;</td><td>Resolve token variables.&#160;</td><td>&#160;</td><td style="text-align: right;">1.458</td></tr>
+<tr><td>&#160;</td><td>Resolved Procedure Element&#160;</td><td><a href="../rdDownload/ECC80516F37FCC983E8D0459EAD7FB6F-8f240aeb500a436cb1d0a4d0aea3b90e-a8bf341ed4f54690a9aa35bc643f476d-rdDebug.xml">View</a>&#160;</td><td style="text-align: right;">1.459</td></tr>
+<tr><td>Call Procedure Plugin&#160;</td><td>ID&#160;</td><td>logger-SimpleLogging&#160;</td><td style="text-align: right;">1.459</td></tr>
+<tr><td>&#160;</td><td>Invoking Java Plugin &#160;</td><td>com.logianalytics.plugins.SimpleLogging&#160;</td><td style="text-align: right;">1.460</td></tr>
+<tr><td>Java Plugin&#160;</td><td>com.logianalytics.plugins.SimpleLogging&#160;</td><td>logEvent completed&#160;</td><td style="text-align: right;">1.461</td></tr>
+<tr><td>&#160;</td><td>Called Plugin&#160;</td><td>&#160;</td><td style="text-align: right;">1.461</td></tr>
+<tr><td>Procedure Return Values&#160;</td><td>&#160;</td><td>&#160;</td><td style="text-align: right;">1.461</td></tr>
+<tr><td>&#160;</td><td>Status&#160;</td><td>Finish&#160;</td><td style="text-align: right;">1.461</td></tr>
+<tr><td style="text-align: center; border-top: 2px solid black; background-color: #eaeff8; font-weight: bold; border-bottom: solid 1px #3f60af" colspan=4>Completed Task log&#160;</td></tr>
+<tr><td>***WARNING***&#160;</td><td>Tokens without values.&#160;</td><td><a href="javascript:rdDebugExpand('f8598300-916c-4d3a-97e7-e3989e4d6903')">View tokens list</a><span style="display:none" id="f8598300-916c-4d3a-97e7-e3989e4d6903">@Function.UserName~<br/>@Request.EventDuration~<br/>@Request.ReportID~<br/>@Request.RowCount~<br/>@Request.SQL~</span>&#160;</td><td style="text-align: right;">1.462</td></tr>
+<tr><td>Process&#160;</td><td>Start&#160;</td><td>&#160;</td><td style="text-align: right;">1.464</td></tr>
+<tr><td>Requested URL&#160;</td><td>&#160;</td><td>http://info.cs.logianalytics.com/ssrm/rdPage.aspx&#160;</td><td style="text-align: right;">1.464</td></tr>
+<tr><td>Check Security&#160;</td><td>&#160;</td><td>&#160;</td><td style="text-align: right;">1.464</td></tr>
+<tr><td>Application Security&#160;</td><td>Enabled&#160;</td><td>True&#160;</td><td style="text-align: right;">1.464</td></tr>
+<tr><td>&#160;</td><td>Authenticated User&#160;</td><td>Davolio&#160;</td><td style="text-align: right;">1.464</td></tr>
+<tr><td>&#160;</td><td>User Roles&#160;</td><td>InfoGoScheduleManager,Sales Representative&#160;</td><td style="text-align: right;">1.464</td></tr>
+<tr><td>&#160;</td><td>User Rights&#160;</td><td>InfoGoScheduleManager,Sales Representative&#160;</td><td style="text-align: right;">1.465</td></tr>
+<tr><td>&#160;</td><td>rdProcess&#160;</td><td>Logging&#160;</td><td style="text-align: right;">1.465</td></tr>
+<tr><td>&#160;</td><td>rdTask&#160;</td><td>log&#160;</td><td style="text-align: right;">1.465</td></tr>
+<tr><td style="text-align: center; border-top: 2px solid black; background-color: #eaeff8; font-weight: bold; border-bottom: solid 1px #3f60af" colspan=4>Start Task log&#160;</td></tr>
+<tr><td>Task&#160;</td><td>Start&#160;</td><td>&#160;</td><td style="text-align: right;">1.466</td></tr>
+<tr><td>&#160;</td><td>ID&#160;</td><td>log&#160;</td><td style="text-align: right;">1.466</td></tr>
+<tr><td style="text-align: center; border-top: 2px solid black; background-color: #eaeff8; font-weight: bold; border-bottom: solid 1px #3f60af" colspan=4>Start Procedure - ID: logger-SimpleLogging&#160;</td></tr>
+<tr><td>Start Procedure&#160;</td><td>Type&#160;</td><td>PluginCall&#160;</td><td style="text-align: right;">1.469</td></tr>
+<tr><td>&#160;</td><td>Resolve token variables.&#160;</td><td>&#160;</td><td style="text-align: right;">1.469</td></tr>
+<tr><td>&#160;</td><td>Resolved Procedure Element&#160;</td><td><a href="../rdDownload/ECC80516F37FCC983E8D0459EAD7FB6F-8f240aeb500a436cb1d0a4d0aea3b90e-1c5d3eeb99c04502b74e633fed6d2da3-rdDebug.xml">View</a>&#160;</td><td style="text-align: right;">1.470</td></tr>
+<tr><td>Call Procedure Plugin&#160;</td><td>ID&#160;</td><td>logger-SimpleLogging&#160;</td><td style="text-align: right;">1.470</td></tr>
+<tr><td>&#160;</td><td>Invoking Java Plugin &#160;</td><td>com.logianalytics.plugins.SimpleLogging&#160;</td><td style="text-align: right;">1.472</td></tr>
+<tr><td>Java Plugin&#160;</td><td>com.logianalytics.plugins.SimpleLogging&#160;</td><td>logEvent completed&#160;</td><td style="text-align: right;">1.472</td></tr>
+<tr><td>&#160;</td><td>Called Plugin&#160;</td><td>&#160;</td><td style="text-align: right;">1.473</td></tr>
+<tr><td>Procedure Return Values&#160;</td><td>&#160;</td><td>&#160;</td><td style="text-align: right;">1.473</td></tr>
+<tr><td>&#160;</td><td>Status&#160;</td><td>Finish&#160;</td><td style="text-align: right;">1.473</td></tr>
+<tr><td style="text-align: center; border-top: 2px solid black; background-color: #eaeff8; font-weight: bold; border-bottom: solid 1px #3f60af" colspan=4>Completed Task log&#160;</td></tr>
+<tr><td>***WARNING***&#160;</td><td>Tokens without values.&#160;</td><td><a href="javascript:rdDebugExpand('8006be55-a3cb-4880-8d2f-15c428f61574')">View tokens list</a><span style="display:none" id="8006be55-a3cb-4880-8d2f-15c428f61574">@Function.UserName~<br/>@Request.EventDuration~<br/>@Request.ReportID~<br/>@Request.RowCount~<br/>@Request.SQL~</span>&#160;</td><td style="text-align: right;">1.474</td></tr>
+<tr id="rdCurrentPosition" style="display: none;"></tr>
+                          </table>
+                      </td>
+                  </tr>
+                  <tr><td class="SmallNote">* Generating this debugger information increases the overall elapsed time.</td></tr>
+                  <tr><td>&#160;</td></tr>
+              </table>
+              <table border="0" class="BodyTable">
+                  <tr><td><rdErrorReport /></td></tr>
+              </table>
+              <br />
+              <a href="javascript:rdDebugDownloadTrace()">Download ZIPed Debugger Trace</a>
+          </span>
+      </rdDetailedReport>
+    </body>
+</html>
